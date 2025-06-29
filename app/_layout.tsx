@@ -1,15 +1,25 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
+import config from "@/utils/tamagui-config";
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_900Black,
+  useFonts,
+} from "@expo-google-fonts/inter";
+import {DarkTheme, DefaultTheme, ThemeProvider} from "@react-navigation/native";
+import {Slot} from "expo-router";
+import {KeyboardAvoidingView, Platform, StatusBar} from "react-native";
+import "react-native-reanimated";
+import {createTamagui, TamaguiProvider} from "tamagui";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  // const colorScheme = useColorScheme();
+  const colorScheme = "dark";
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Inter_900Black,
+    Inter_400Regular,
+    Inter_600SemiBold,
+    Inter_500Medium,
   });
 
   if (!loaded) {
@@ -17,13 +27,18 @@ export default function RootLayout() {
     return null;
   }
 
+  const configTamagui = createTamagui(config);
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <TamaguiProvider config={configTamagui} defaultTheme={colorScheme!}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{flex: 1}}
+        >
+          <Slot />
+          <StatusBar barStyle="light-content" />
+        </KeyboardAvoidingView>
+      </ThemeProvider>
+    </TamaguiProvider>
   );
 }

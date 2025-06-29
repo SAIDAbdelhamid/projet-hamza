@@ -1,31 +1,50 @@
-import { StyleSheet, Text, type TextProps } from 'react-native';
+import {Platform, StyleSheet, Text, type TextProps} from "react-native";
 
-import { useThemeColor } from '@/hooks/useThemeColor';
+import {useThemeColor} from "@/hooks/useThemeColor";
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  type?:
+    | "default"
+    | "titleXL"
+    | "title"
+    | "subTitle"
+    | "bodySmallMedium"
+    | "labelBold"
+    | "subTitleRegular"
+    | "body"
+    | "bodySmall"
+    | "label"
+    | "caption"
+    | "link";
 };
 
 export function ThemedText({
   style,
   lightColor,
   darkColor,
-  type = 'default',
+  type = "default",
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const color = useThemeColor({light: lightColor, dark: darkColor}, "text");
 
   return (
     <Text
       style={[
-        { color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
+        {color},
+        type === "default" ? styles.default : undefined,
+        type === "titleXL" ? styles.titleXL : undefined,
+        type === "title" ? styles.title : undefined,
+        type === "subTitle" ? styles.subTitle : undefined,
+        type === "bodySmallMedium" ? styles.bodySmallMedium : undefined,
+        type === "labelBold" ? styles.labelBold : undefined,
+        type === "subTitleRegular" ? styles.subTitleRegular : undefined,
+        type === "body" ? styles.body : undefined,
+        type === "bodySmall" ? styles.bodySmall : undefined,
+        type === "label" ? styles.label : undefined,
+        type === "caption" ? styles.caption : undefined,
+        type === "link" ? styles.link : undefined,
         style,
       ]}
       {...rest}
@@ -35,26 +54,89 @@ export function ThemedText({
 
 const styles = StyleSheet.create({
   default: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontFamily: Platform.select({
+      android: "Inter_400Regular",
+      ios: "Inter-Regular",
+    }),
   },
   link: {
     lineHeight: 30,
     fontSize: 16,
-    color: '#0a7ea4',
+    fontFamily: Platform.select({
+      android: "Inter_400Regular",
+      ios: "Inter-Regular",
+    }),
+    color: "#0a7ea4",
+  },
+  titleXL: {
+    fontSize: 36,
+    fontFamily: Platform.select({
+      android: "Inter_600SemiBold",
+      ios: "Inter-SemiBold",
+    }),
+  },
+  title: {
+    fontSize: 24,
+    fontFamily: Platform.select({
+      android: "Inter_500Medium",
+      ios: "Inter-Medium",
+    }),
+  },
+  subTitle: {
+    fontSize: 20,
+    fontFamily: Platform.select({
+      android: "Inter_500Medium",
+      ios: "Inter-Medium",
+    }),
+  },
+  bodySmallMedium: {
+    fontSize: 16,
+    fontFamily: Platform.select({
+      android: "Inter_500Medium",
+      ios: "Inter-Medium",
+    }),
+  },
+  labelBold: {
+    fontSize: 16,
+    fontFamily: Platform.select({
+      android: "Inter_600SemiBold",
+      ios: "Inter-SemiBold",
+    }),
+  },
+  subTitleRegular: {
+    fontSize: 20,
+    fontFamily: Platform.select({
+      android: "Inter_400Regular",
+      ios: "Inter-Regular",
+    }),
+  },
+  body: {
+    fontSize: 18,
+    fontFamily: Platform.select({
+      android: "Inter_400Regular",
+      ios: "Inter-Regular",
+    }),
+  },
+  bodySmall: {
+    fontSize: 18,
+    fontFamily: Platform.select({
+      android: "Inter_400Regular",
+      ios: "Inter-Regular",
+    }),
+  },
+  label: {
+    fontSize: 14,
+    fontFamily: Platform.select({
+      android: "Inter_400Regular",
+      ios: "Inter-Regular",
+    }),
+  },
+  caption: {
+    fontSize: 12,
+    fontFamily: Platform.select({
+      android: "Inter_400Regular",
+      ios: "Inter-Regular",
+    }),
   },
 });

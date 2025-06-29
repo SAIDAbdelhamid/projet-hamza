@@ -1,0 +1,15 @@
+{
+  "registration": {
+    "generalInformation": {
+      "title": "Vos coordonnées",
+      "username": "Nom d'utilisateur",
+      "firstname": "Prénom",
+      "lastname": "Nom de famille",
+      "phoneNumber": "Numéro de téléphone",
+      "phoneHidden": "Afficher mon numéro de téléphone dans le profil",
+      "continue": "Continuer",
+      "isRequired": "est obligatoire",
+      "invalid": "invalide"
+    }
+  }
+}
