@@ -1,8 +1,8 @@
-import {ImageBackground, type ViewProps} from "react-native";
+import {ImageBackground, ImageBackgroundProps} from "react-native";
 
 import {useThemeColor} from "@/hooks/useThemeColor";
 
-export type ThemedViewProps = ViewProps & {
+export type ThemedViewProps = ImageBackgroundProps & {
   lightColor?: string;
   darkColor?: string;
 };
@@ -20,7 +20,7 @@ export function ThemedView({
 
   return (
     <ImageBackground
-      source={require("../assets/images/background.png")}
+      source={otherProps.source || require("../assets/images/background.png")}
       resizeMode="stretch"
       style={[style]}
       {...otherProps}

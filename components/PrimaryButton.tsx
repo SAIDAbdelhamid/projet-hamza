@@ -1,3 +1,5 @@
+import {Colors} from "@/constants/Colors";
+import {useTheme} from "@react-navigation/native";
 import React, {ReactNode} from "react";
 import {
   StyleSheet,
@@ -15,6 +17,8 @@ export default function PrimaryButton({
   children,
   ...props
 }: PrimaryButtonProps) {
+  const {dark} = useTheme();
+  const theme = dark ? "dark" : "light";
   return (
     <TouchableHighlight
       activeOpacity={0.9}
@@ -29,6 +33,7 @@ export default function PrimaryButton({
         <View
           style={{
             ...styles.disabledContainer,
+            backgroundColor: Colors[theme].disabled,
             borderRadius: (props.style as any)?.borderRadius || 15,
           }}
         >
@@ -41,7 +46,7 @@ export default function PrimaryButton({
           alignItems="center"
           justifyContent="center"
           borderRadius={(props.style as any)?.borderRadius || 15}
-          colors={["#61E6FB", "#478CEC"]}
+          colors={[Colors[theme].gradientStart, Colors[theme].gradientEnd]}
           start={[0, 0]}
           end={[0.05, 2]}
           locations={[0, 0.65]}
@@ -59,6 +64,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     height: "100%",
     width: "100%",
-    backgroundColor: "#585858",
   },
 });

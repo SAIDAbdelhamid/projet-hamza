@@ -6,7 +6,12 @@ import {
   Inter_900Black,
   useFonts,
 } from "@expo-google-fonts/inter";
-import {DarkTheme, DefaultTheme, ThemeProvider} from "@react-navigation/native";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+  useTheme,
+} from "@react-navigation/native";
 import {Slot} from "expo-router";
 import {KeyboardAvoidingView, Platform, StatusBar} from "react-native";
 import "react-native-reanimated";
@@ -14,7 +19,8 @@ import {createTamagui, TamaguiProvider} from "tamagui";
 
 export default function RootLayout() {
   // const colorScheme = useColorScheme();
-  const colorScheme = "dark";
+  const {dark} = useTheme();
+  const theme = "dark";
   const [loaded] = useFonts({
     Inter_900Black,
     Inter_400Regular,
@@ -29,8 +35,8 @@ export default function RootLayout() {
 
   const configTamagui = createTamagui(config);
   return (
-    <TamaguiProvider config={configTamagui} defaultTheme={colorScheme!}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <TamaguiProvider config={configTamagui} defaultTheme={theme!}>
+      <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{flex: 1}}

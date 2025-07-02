@@ -12,9 +12,11 @@ export type ThemedTextProps = TextProps & {
     | "subTitle"
     | "bodySmallMedium"
     | "labelBold"
+    | "labelRegular"
     | "subTitleRegular"
     | "body"
     | "bodySmall"
+    | "labelSemiBold"
     | "label"
     | "caption"
     | "link";
@@ -39,9 +41,11 @@ export function ThemedText({
         type === "subTitle" ? styles.subTitle : undefined,
         type === "bodySmallMedium" ? styles.bodySmallMedium : undefined,
         type === "labelBold" ? styles.labelBold : undefined,
+        type === "labelRegular" ? styles.labelRegular : undefined,
         type === "subTitleRegular" ? styles.subTitleRegular : undefined,
         type === "body" ? styles.body : undefined,
         type === "bodySmall" ? styles.bodySmall : undefined,
+        type === "labelSemiBold" ? styles.labelSemiBold : undefined,
         type === "label" ? styles.label : undefined,
         type === "caption" ? styles.caption : undefined,
         type === "link" ? styles.link : undefined,
@@ -104,6 +108,13 @@ const styles = StyleSheet.create({
       ios: "Inter-SemiBold",
     }),
   },
+  labelRegular: {
+    fontSize: 16,
+    fontFamily: Platform.select({
+      android: "Inter_400Regular",
+      ios: "Inter-Regular",
+    }),
+  },
   subTitleRegular: {
     fontSize: 20,
     fontFamily: Platform.select({
@@ -123,6 +134,13 @@ const styles = StyleSheet.create({
     fontFamily: Platform.select({
       android: "Inter_400Regular",
       ios: "Inter-Regular",
+    }),
+  },
+  labelSemiBold: {
+    fontSize: 14,
+    fontFamily: Platform.select({
+      android: "Inter_600SemiBold",
+      ios: "Inter-SemiBold",
     }),
   },
   label: {

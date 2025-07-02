@@ -1,5 +1,17 @@
 {
   "registration": {
+    "common": {
+      "continue": "Continue"
+    },
+    "intro": {
+      "title": "Let’s get started",
+      "subTitle": "Sell, create, and connect in one place.",
+      "step1": "Registration",
+      "step2": "Create password",
+      "step3": "Your details",
+      "step4": "Account type",
+      "step5": "Choice of categories"
+    },
     "generalInformation": {
       "title": "Your details",
       "username": "Username",
@@ -7,9 +19,71 @@
       "lastname": "Last name",
       "phoneNumber": "Phone number",
       "phoneHidden": "Show my phone number in profile",
-      "continue": "Continue",
       "isRequired": "is required",
+      "usernameRequired": "Username is required",
+      "phoneMatch": "Invalid phone number",
       "invalid": "invalid"
+    },
+    "createPassword": {
+      "title": "Create password",
+      "password": "Password",
+      "passwordPlaceHolder": "Enter password",
+      "passwordConfirmation": "Confirm password",
+      "createPassword": "Create password",
+      "passwordRequired": "Password required",
+      "confirmationPasswordRequired": "Confirmation required",
+      "lengthMatch": "8 characters",
+      "uppercaseMatch": "1 uppercase letter (ABC)",
+      "lowercaseMatch": "1 lowercase letter (abc)",
+      "numberMatch": "1 number (123)",
+      "specialCharacterMatch": "1 special character (# ! ?)",
+      "passwordsMatch": "Passwords match"
+    },
+    "emailStep": {
+      "title": "Registration",
+      "email": "E-mail",
+      "emailPlaceholder": "Enter e-mail",
+      "showEmail": "Show my email in profile",
+      "confirmMail": "Confirm email",
+      "emailMatch": "Email is required",
+      "emailValid": "Invalid email address"
+    },
+    "emailOtp": {
+      "title": "Confirm your email",
+      "sendTo": "Code sent to",
+      "resendCode": "Resend code",
+      "otpMatch": "Code is required",
+      "lengthMatch": "The code must contain exactly 6 digits."
+    },
+    "accountType": {
+      "title": "Select account type",
+      "typeBusiness": "Business",
+      "typeStandard": "Standard",
+      "roleUser": "User",
+      "roleOwner": "Owner"
+    },
+    "accountCategories": {
+      "title": "Choose your categories",
+      "search": "Search"
+    }
+  },
+  "app": {
+    "common": {
+      "skip": "Skip for now",
+      "later": "You can always edit this later in Settings.",
+      "done": "Done"
+    },
+    "locationPicker": {
+      "title": "Where are you?",
+      "useCurrent": "Use current location",
+      "selectManually": "select manually",
+      "country": "Country",
+      "city": "City"
+    },
+    "socialNetwork": {
+      "title": "Social Network",
+      "linkSocial": "Paste link to your social profile",
+      "connectSocial": "Connect via social account"
     }
   }
 }

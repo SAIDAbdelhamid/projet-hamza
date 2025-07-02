@@ -1,5 +1,17 @@
 {
   "registration": {
+    "common": {
+      "continue": "Continuer"
+    },
+    "intro": {
+      "title": "Commençons",
+      "subTitle": "Vendez, créez et connectez-vous en un seul endroit.",
+      "step1": "Inscription",
+      "step2": "Créer un mot de passe",
+      "step3": "Vos coordonnées",
+      "step4": "Type de compte",
+      "step5": "Choix des catégories"
+    },
     "generalInformation": {
       "title": "Vos coordonnées",
       "username": "Nom d'utilisateur",
@@ -7,9 +19,71 @@
       "lastname": "Nom de famille",
       "phoneNumber": "Numéro de téléphone",
       "phoneHidden": "Afficher mon numéro de téléphone dans le profil",
-      "continue": "Continuer",
       "isRequired": "est obligatoire",
+      "usernameRequired": "Le nom d'utilisateur est obligatoire",
+      "phoneMatch": "Numéro de téléphone invalide",
       "invalid": "invalide"
+    },
+    "createPassword": {
+      "title": "Créer un mot de passe",
+      "password": "Mot de passe",
+      "passwordPlaceHolder": "Entrez le mot de passe",
+      "passwordConfirmation": "Confirmez le mot de passe",
+      "createPassword": "Créer un mot de passe",
+      "passwordRequired": "Mot de passe obligatoire",
+      "confirmationPasswordRequired": "Confirmation mot de passe obligatoire",
+      "lengthMatch": "8 caractères",
+      "uppercaseMatch": "1 lettre majuscule (ABC)",
+      "lowercaseMatch": "1 lettre minuscule (abc)",
+      "numberMatch": "1 numéro (123)",
+      "specialCharacterMatch": "1 caractère spécial (# ! ?)",
+      "passwordsMatch": "Les mots de passe correspondent"
+    },
+    "emailStep": {
+      "title": "Inscription",
+      "email": "E-mail",
+      "emailPlaceholder": "Entrez l'e-mail",
+      "showEmail": "Afficher mon email dans le profil",
+      "confirmMail": "Confirmez votre email",
+      "emailMatch": "L'e-mail est obligatoire",
+      "emailValid": "Adresse e-mail invalide"
+    },
+    "emailOtp": {
+      "title": "Confirmez votre email",
+      "sendTo": "Code envoyé à",
+      "resendCode": "Renvoyer le code",
+      "otpMatch": "Le code est obligatoire",
+      "lengthMatch": "Le code doit contenir exactement 6 chiffres."
+    },
+    "accountType": {
+      "title": "Sélectionnez le type de compte",
+      "typeBusiness": "Entreprise",
+      "typeStandard": "Standard",
+      "roleUser": "Utilisateur",
+      "roleOwner": "Propriétaire"
+    },
+    "accountCategories": {
+      "title": "Choisissez vos catégories",
+      "search": "Recherche"
+    }
+  },
+  "app": {
+    "common": {
+      "skip": "Passer pour l'instant",
+      "later": "Vous pouvez toujours modifier cela plus tard dans les paramètres.",
+      "done": "Fait"
+    },
+    "locationPicker": {
+      "title": "Où es-tu?",
+      "useCurrent": "Utiliser l'emplacement actuel",
+      "selectManually": "sélectionner manuellement",
+      "country": "Pays",
+      "city": "Ville"
+    },
+    "socialNetwork": {
+      "title": "Réseau social",
+      "linkSocial": "Collez le lien vers votre profil social",
+      "connectSocial": "Connectez-vous via un compte social"
     }
   }
 }
