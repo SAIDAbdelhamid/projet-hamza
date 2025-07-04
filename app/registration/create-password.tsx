@@ -1,23 +1,27 @@
+import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
 import {ThemedView} from "@/components/ThemedView";
 import {Colors} from "@/constants/Colors";
 import en from "@/constants/lang/en.json";
 import fr from "@/constants/lang/fr.json";
+import {RootState} from "@/store";
+import {setRegistration} from "@/store/slices/registrationSlice";
 import MaskedView from "@react-native-masked-view/masked-view";
 import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
-import {Check} from "@tamagui/lucide-icons";
+import {Check, ChevronLeft, LockKeyholeOpen} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
-import {useLayoutEffect, useRef} from "react";
+import {useLayoutEffect, useRef, useState} from "react";
 import {Controller, useForm} from "react-hook-form";
-import {ScrollView, StyleSheet} from "react-native";
-import {Input, View, XStack, YStack} from "tamagui";
+import {ScrollView, StyleSheet, TextInput} from "react-native";
+import {useDispatch, useSelector} from "react-redux";
+import {View, XStack, YStack} from "tamagui";
 import {LinearGradient} from "tamagui/linear-gradient";
 
 type FormData = {
   password: string;
-  password_confirmation: string;
+  password_confirm: string;
 };
 
 export default function CreatePassword() {
@@ -25,15 +29,29 @@ export default function CreatePassword() {
   const router = useRouter();
   const headerHeight = useHeaderHeight();
   const {dark} = useTheme();
+  const [loading, setLoading] = useState(false);
   const theme = dark ? "dark" : "light";
   const t = false ? fr : en;
-  const inputRefs = useRef<Record<string, Input | null>>({});
+  const inputRefs = useRef<Record<string, TextInput | null>>({});
+  const registration = useSelector((state: RootState) => state.registration);
+  const dispatch = useDispatch();
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: t.registration.createPassword.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
+      headerLeft: () => (
+        <ChevronLeft
+          onPress={() =>
+            navigation.canGoBack()
+              ? navigation.goBack()
+              : router.replace("/registration/email-step")
+          }
+          marginRight={20}
+          size={24}
+        />
+      ),
     });
   });
 
@@ -46,8 +64,8 @@ export default function CreatePassword() {
   } = useForm<FormData>({
     mode: "onChange",
     defaultValues: {
-      password: "",
-      password_confirmation: "",
+      password: registration.password,
+      password_confirm: registration.password_confirm,
     },
   });
 
@@ -76,7 +94,7 @@ export default function CreatePassword() {
     },
     {
       label: t.registration.createPassword.passwordConfirmation,
-      valid: passwordValue === getValues("password_confirmation"),
+      valid: passwordValue === getValues("password_confirm"),
     },
   ];
 
@@ -97,7 +115,7 @@ export default function CreatePassword() {
           t.registration.createPassword.specialCharacterMatch,
       },
     },
-    password_confirmation: {
+    password_confirm: {
       required: t.registration.createPassword.confirmationPasswordRequired,
       validate: (value: string) =>
         value === getValues("password") ||
@@ -105,8 +123,15 @@ export default function CreatePassword() {
     },
   };
 
-  const onSubmit = (data: FormData) => {
-    console.log("Form submitted:", data);
+  const onSubmit = async (data: FormData) => {
+    dispatch(
+      setRegistration({
+        ...registration,
+        step: "GENERAL_INFORMATION",
+        password: data.password,
+        password_confirm: data.password_confirm,
+      })
+    );
     router.navigate("/registration/general-information");
   };
 
@@ -116,88 +141,80 @@ export default function CreatePassword() {
         <Controller
           name={"password"}
           control={control}
+          rules={rules.password}
           render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
-            <>
-              <ThemedText
-                style={{
-                  ...styles.caption,
-                  color: error ? Colors[theme].error : Colors[theme].text,
-                }}
-                type="caption"
-              >
-                {t.registration.createPassword.password}
-              </ThemedText>
-              <Input
-                ref={(ref) => {
-                  inputRefs.current.password = ref;
-                }}
-                size="$4"
-                keyboardType={"default"}
-                secureTextEntry
-                autoComplete="current-password"
-                placeholder={t.registration.createPassword.passwordPlaceHolder}
-                value={value ? value.toString() : undefined}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                borderColor={error ? Colors[theme].error : undefined}
-                returnKeyType={"next"}
-                onSubmitEditing={() => {
-                  inputRefs.current.password_confirmation?.focus();
-                }}
-              />
-              {error?.message ===
-                t.registration.createPassword.passwordRequired && (
-                <ThemedText
-                  style={{color: Colors[theme].error, paddingBottom: 4}}
-                  type="caption"
-                >
-                  {error.message}
-                </ThemedText>
-              )}
-            </>
+            <Input
+              ref={(ref) => {
+                inputRefs.current.password = ref;
+              }}
+              isPassword
+              label={t.registration.createPassword.password}
+              leftIcon={
+                <LockKeyholeOpen
+                  size={22}
+                  zIndex={1}
+                  position="absolute"
+                  top={10}
+                  left={12}
+                />
+              }
+              size="$4"
+              autoFocus
+              keyboardType={"default"}
+              autoComplete="current-password"
+              placeholder={t.registration.createPassword.passwordPlaceHolder}
+              value={value ? value.toString() : undefined}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              error={
+                error?.message ===
+                t.registration.createPassword.passwordRequired
+                  ? error
+                  : undefined
+              }
+              returnKeyType={"next"}
+              onSubmitEditing={() => {
+                inputRefs.current.password_confirm?.focus();
+              }}
+            />
           )}
         />
         <Controller
-          name={"password_confirmation"}
+          name={"password_confirm"}
           control={control}
-          rules={rules.password_confirmation}
+          rules={rules.password_confirm}
           render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
-            <>
-              <ThemedText
-                style={{
-                  ...styles.caption,
-                  color: error ? Colors[theme].error : Colors[theme].text,
-                }}
-                type="caption"
-              >
-                {t.registration.createPassword.passwordConfirmation}
-              </ThemedText>
-              <Input
-                ref={(ref) => {
-                  inputRefs.current.password_confirmation = ref;
-                }}
-                size="$4"
-                keyboardType={"default"}
-                secureTextEntry
-                autoComplete="current-password"
-                placeholder={t.registration.createPassword.passwordConfirmation}
-                value={value ? value.toString() : undefined}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                borderColor={error ? Colors[theme].error : undefined}
-                returnKeyType={"send"}
-                onSubmitEditing={handleSubmit(onSubmit)}
-              />
-              {error?.message ===
-                t.registration.createPassword.confirmationPasswordRequired && (
-                <ThemedText
-                  style={{color: Colors[theme].error, paddingBottom: 4}}
-                  type="caption"
-                >
-                  {error.message}
-                </ThemedText>
-              )}
-            </>
+            <Input
+              ref={(ref) => {
+                inputRefs.current.password_confirm = ref;
+              }}
+              isPassword
+              label={t.registration.createPassword.passwordConfirmation}
+              leftIcon={
+                <LockKeyholeOpen
+                  size={22}
+                  zIndex={1}
+                  position="absolute"
+                  top={10}
+                  left={12}
+                />
+              }
+              size="$4"
+              keyboardType={"default"}
+              autoComplete="current-password"
+              placeholder={t.registration.createPassword.passwordConfirmation}
+              value={value ? value.toString() : undefined}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              error={
+                error?.message ===
+                t.registration.createPassword.confirmationPasswordRequired
+                  ? error
+                  : undefined
+              }
+              returnKeyType={"send"}
+              onSubmitEditing={handleSubmit(onSubmit)}
+            />
           )}
         />
         <YStack gap="$2" paddingTop={20}>
@@ -241,8 +258,12 @@ export default function CreatePassword() {
           ))}
         </YStack>
 
-        <YStack flex={1} paddingBottom={40} justifyContent="flex-end">
-          <PrimaryButton onPress={handleSubmit(onSubmit)}>
+        <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
+          <PrimaryButton
+            loading={loading}
+            disabled={loading}
+            onPress={handleSubmit(onSubmit)}
+          >
             <ThemedText type="labelBold">
               {t.registration.createPassword.createPassword}
             </ThemedText>
@@ -261,5 +282,4 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingTop: 40,
   },
-  caption: {paddingBottom: 4, paddingTop: 20},
 });

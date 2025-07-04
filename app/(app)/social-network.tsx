@@ -1,3 +1,4 @@
+import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
 import {Colors} from "@/constants/Colors";
@@ -6,13 +7,22 @@ import fr from "@/constants/lang/fr.json";
 import MaskedView from "@react-native-masked-view/masked-view";
 import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
-import {ChevronLeft, X} from "@tamagui/lucide-icons";
+import {ChevronLeft, Paperclip, X} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
 import {useLayoutEffect} from "react";
-import {Platform, StyleSheet, TouchableHighlight} from "react-native";
-import {Button, Image, Input, View, YStack} from "tamagui";
+import {Controller, useForm} from "react-hook-form";
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableHighlight,
+} from "react-native";
+import {Button, Image, View, YStack} from "tamagui";
 import {LinearGradient} from "tamagui/linear-gradient";
 
+type FormData = {
+  searchLink: string;
+};
 export default function SocialNetwork() {
   const t = false ? fr : en;
   const {dark} = useTheme();
@@ -37,6 +47,27 @@ export default function SocialNetwork() {
     });
   });
 
+  const {control, handleSubmit} = useForm<FormData>({
+    defaultValues: {
+      searchLink: "",
+    },
+  });
+
+  const rules = {
+    searchLink: {
+      // FACEBOOK: /^(https?://)(?:\w+.)?facebook.com/./i,
+      // TWITTER: /^(https?://)(?:\w+.)?(twitter|x).com/./i,
+      // INSTAGRAM: /^(https?://)(?:\w+.)?instagram.com/./i,
+      // LINKEDIN: /^(https?://)(?:\w+.)?linkedin.com/./i,
+      // YOUTUBE: /^(https?://)(?:\w+.)?youtube.com/./i,
+      // SNAPCHAT: /^(https?://)(?:\w+.)?snapchat.com/./i,
+      // WHATSAPP: /^(https?://)?chat.whatsapp.com/./i,
+      // TIKTOK: /^(https?://)(?:\w+.)?tiktok.com/./i,
+      // TELEGRAM: /^(https?://)(?:\w+.)?(telegram|t).me/./i,
+      // WECHAT: /^(https?://)?(www.)?wechat.com/./i,`
+    },
+  };
+
   return (
     <View
       flex={1}
@@ -44,102 +75,131 @@ export default function SocialNetwork() {
       paddingTop={24 + headerHeight}
       backgroundColor={Colors[theme].modal}
     >
-      <ThemedText style={styles.titleLink} type="subTitle">
-        {t.app.socialNetwork.linkSocial}
-      </ThemedText>
-      <Input size={"$4"} placeholder={`Search`} />
+      <Controller
+        name={"searchLink"}
+        control={control}
+        rules={rules.searchLink}
+        render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
+          <>
+            <ThemedText style={styles.titleLink} type="subTitle">
+              {t.app.socialNetwork.linkSocial}
+            </ThemedText>
+            <Input
+              leftIcon={
+                <Paperclip
+                  size={22}
+                  zIndex={1}
+                  position="absolute"
+                  top={11}
+                  left={12}
+                />
+              }
+              size={"$4"}
+              error={error}
+              placeholder={t.app.socialNetwork.search}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              value={value ? value.toString() : undefined}
+            />
+          </>
+        )}
+      />
       <ThemedText style={styles.titleConnection} type="subTitle">
         {t.app.socialNetwork.connectSocial}
       </ThemedText>
-      <Button
-        marginBottom={4}
-        marginTop={4}
-        flexDirection="row"
-        width={"100%"}
-        height={80}
-        justifyContent="flex-start"
-        borderColor={Colors[theme].border}
-        borderWidth={2}
-        onPress={() => console.log("onPress")}
-      >
-        <Image
-          height={48}
-          width={48}
-          source={require("../../assets/images/twitter.png")}
-          borderRadius={24}
-          marginRight={12}
-          alignItems="center"
-          justifyContent="center"
-        />
-        <ThemedText type="bodySmallMedium">Twitter</ThemedText>
-      </Button>
-      <Button
-        marginBottom={4}
-        marginTop={4}
-        flexDirection="row"
-        width={"100%"}
-        height={80}
-        justifyContent="flex-start"
-        borderColor={Colors[theme].border}
-        borderWidth={2}
-        onPress={() => console.log("onPress")}
-      >
-        <Image
-          height={48}
-          width={48}
-          source={require("../../assets/images/facebook.png")}
-          borderRadius={24}
-          marginRight={12}
-          alignItems="center"
-          justifyContent="center"
-        />
-        <ThemedText type="bodySmallMedium">Facebook</ThemedText>
-      </Button>
-      <Button
-        marginBottom={4}
-        marginTop={4}
-        flexDirection="row"
-        width={"100%"}
-        height={80}
-        justifyContent="flex-start"
-        borderColor={Colors[theme].border}
-        borderWidth={2}
-        onPress={() => console.log("onPress")}
-      >
-        <Image
-          height={48}
-          width={48}
-          source={require("../../assets/images/linkedin.png")}
-          borderRadius={24}
-          marginRight={12}
-          alignItems="center"
-          justifyContent="center"
-        />
-        <ThemedText type="bodySmallMedium">LinkedIn</ThemedText>
-      </Button>
-      <Button
-        marginBottom={4}
-        marginTop={4}
-        flexDirection="row"
-        justifyContent="flex-start"
-        width={"100%"}
-        height={80}
-        borderColor={Colors[theme].border}
-        borderWidth={2}
-        onPress={() => console.log("onPress")}
-      >
-        <Image
-          height={48}
-          width={48}
-          source={require("../../assets/images/whatsapp.png")}
-          borderRadius={24}
-          marginRight={12}
-          alignItems="center"
-          justifyContent="center"
-        />
-        <ThemedText type="bodySmallMedium">WhatsApp</ThemedText>
-      </Button>
-      <YStack flex={1} paddingBottom={40} justifyContent="flex-end">
+      <YStack flex={1}>
+        <ScrollView>
+          <Button
+            marginBottom={4}
+            marginTop={4}
+            flexDirection="row"
+            width={"100%"}
+            height={80}
+            justifyContent="flex-start"
+            borderColor={Colors[theme].border}
+            borderWidth={2}
+            onPress={() => console.log("Twitter")}
+          >
+            <Image
+              height={48}
+              width={48}
+              source={require("../../assets/images/twitter.png")}
+              borderRadius={24}
+              marginRight={12}
+              alignItems="center"
+              justifyContent="center"
+            />
+            <ThemedText type="bodySmallMedium">Twitter</ThemedText>
+          </Button>
+          <Button
+            marginBottom={4}
+            marginTop={4}
+            flexDirection="row"
+            width={"100%"}
+            height={80}
+            justifyContent="flex-start"
+            borderColor={Colors[theme].border}
+            borderWidth={2}
+            onPress={() => console.log("Facebook")}
+          >
+            <Image
+              height={48}
+              width={48}
+              source={require("../../assets/images/facebook.png")}
+              borderRadius={24}
+              marginRight={12}
+              alignItems="center"
+              justifyContent="center"
+            />
+            <ThemedText type="bodySmallMedium">Facebook</ThemedText>
+          </Button>
+          <Button
+            marginBottom={4}
+            marginTop={4}
+            flexDirection="row"
+            width={"100%"}
+            height={80}
+            justifyContent="flex-start"
+            borderColor={Colors[theme].border}
+            borderWidth={2}
+            onPress={() => console.log("LinkedIn")}
+          >
+            <Image
+              height={48}
+              width={48}
+              source={require("../../assets/images/linkedin.png")}
+              borderRadius={24}
+              marginRight={12}
+              alignItems="center"
+              justifyContent="center"
+            />
+            <ThemedText type="bodySmallMedium">LinkedIn</ThemedText>
+          </Button>
+          <Button
+            marginBottom={4}
+            marginTop={4}
+            flexDirection="row"
+            justifyContent="flex-start"
+            width={"100%"}
+            height={80}
+            borderColor={Colors[theme].border}
+            borderWidth={2}
+            onPress={() => console.log("WhatsApp")}
+          >
+            <Image
+              height={48}
+              width={48}
+              source={require("../../assets/images/whatsapp.png")}
+              borderRadius={24}
+              marginRight={12}
+              alignItems="center"
+              justifyContent="center"
+            />
+            <ThemedText type="bodySmallMedium">WhatsApp</ThemedText>
+          </Button>
+        </ScrollView>
+      </YStack>
+      <YStack height={160} paddingBottom={20} justifyContent="flex-end">
         <ThemedText style={styles.skipLabel} type="label">
           {t.app.common.later}
         </ThemedText>

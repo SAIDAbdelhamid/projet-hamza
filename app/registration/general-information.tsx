@@ -1,22 +1,30 @@
+import {postRegister} from "@/api/apis";
+import ws from "@/api/axiosConfig";
+import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
 import {ThemedView} from "@/components/ThemedView";
 import {Colors} from "@/constants/Colors";
 import en from "@/constants/lang/en.json";
 import fr from "@/constants/lang/fr.json";
+import {RootState} from "@/store";
+import {setRegistration} from "@/store/slices/registrationSlice";
 import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
+import {ChevronLeft, Phone} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
-import {useLayoutEffect, useRef} from "react";
+import * as SecureStore from "expo-secure-store";
+import {useLayoutEffect, useRef, useState} from "react";
 import {Controller, useForm} from "react-hook-form";
-import {ScrollView, StyleSheet} from "react-native";
-import {Input, Switch, XStack, YStack} from "tamagui";
+import {Alert, ScrollView, StyleSheet, TextInput} from "react-native";
+import {useDispatch, useSelector} from "react-redux";
+import {Switch, XStack, YStack} from "tamagui";
 
 type FormData = {
   username: string;
   firstname: string;
   lastname: string;
-  phone: string;
+  phone_number: string;
   phone_hidden: boolean;
 };
 
@@ -27,28 +35,42 @@ export default function GeneralInformation() {
   const {dark} = useTheme();
   const theme = dark ? "dark" : "light";
   const t = false ? fr : en;
-  const inputRefs = useRef<Record<string, Input | null>>({});
+  const inputRefs = useRef<Record<string, TextInput | null>>({});
+  const [loading, setLoading] = useState(false);
+  const registration = useSelector((state: RootState) => state.registration);
+  const dispatch = useDispatch();
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: t.registration.generalInformation.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
+      headerLeft: () => (
+        <ChevronLeft
+          onPress={() =>
+            navigation.canGoBack()
+              ? navigation.goBack()
+              : router.replace("/registration/create-password")
+          }
+          marginRight={20}
+          size={24}
+        />
+      ),
     });
   });
 
   const {control, handleSubmit} = useForm<FormData>({
     defaultValues: {
-      username: "",
-      firstname: "",
-      lastname: "",
-      phone: "",
-      phone_hidden: false,
+      username: registration.username,
+      firstname: registration.firstname,
+      lastname: registration.lastname,
+      phone_number: registration.phone_number,
+      phone_hidden: registration.phone_hidden,
     },
   });
   const rules = {
     username: {required: t.registration.generalInformation.usernameRequired},
-    phone: {
+    phone_number: {
       pattern: {
         value: /^\+?[0-9]{7,15}$/,
         message: t.registration.generalInformation.phoneMatch,
@@ -56,9 +78,49 @@ export default function GeneralInformation() {
     },
   };
 
-  const onSubmit = (data: FormData) => {
-    console.log("Form submitted:", data);
-    router.navigate("/registration/account-type");
+  const onSubmit = async (data: FormData) => {
+    setLoading(true);
+    try {
+      const response = await postRegister({
+        username: data.username,
+        firstname: data.firstname,
+        lastname: data.lastname,
+        password: registration.password,
+        password_confirm: registration.password,
+        email: registration.email,
+        phone_number: data.phone_number,
+        phone_hidden: data.phone_hidden,
+      });
+      console.log(response);
+      if (response) {
+        if (response.access_token) {
+          ws.defaults.headers.common["Authorization"] =
+            `Bearer ${response.access_token}`;
+          await SecureStore.setItemAsync("access_token", response.access_token);
+        }
+
+        dispatch(
+          setRegistration({
+            ...registration,
+            step: "EMAIL_OTP",
+            username: data.username,
+            firstname: data.firstname,
+            lastname: data.lastname,
+            phone_number: data.phone_number,
+            phone_hidden: data.phone_hidden,
+          })
+        );
+        router.navigate("/registration/email-otp");
+      }
+    } catch (e: any) {
+      const error = e.response;
+      Alert.alert(
+        "Error " + error.status,
+        Object.values(e.response.data).flat().join("\n")
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -74,38 +136,22 @@ export default function GeneralInformation() {
               field: {onChange, onBlur, value},
               fieldState: {error},
             }) => (
-              <>
-                <ThemedText
-                  style={{
-                    ...styles.caption,
-                    color: error ? Colors[theme].error : Colors[theme].text,
-                  }}
-                  type="caption"
-                >
-                  {t.registration.generalInformation.username + " *"}
-                </ThemedText>
-                <Input
-                  ref={(ref) => {
-                    inputRefs.current.username = ref;
-                  }}
-                  size="$4"
-                  placeholder={t.registration.generalInformation.username}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  returnKeyType="next"
-                  borderColor={error ? Colors[theme].error : undefined}
-                  onSubmitEditing={() => inputRefs.current.firstname?.focus()}
-                />
-                {error && (
-                  <ThemedText
-                    style={{color: Colors[theme].error, paddingTop: 4}}
-                    type="caption"
-                  >
-                    {error.message}
-                  </ThemedText>
-                )}
-              </>
+              <Input
+                ref={(ref) => {
+                  inputRefs.current.username = ref;
+                }}
+                label={t.registration.generalInformation.username + " *"}
+                size="$4"
+                autoFocus
+                placeholder={t.registration.generalInformation.username}
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                returnKeyType="next"
+                borderColor={error ? Colors[theme].error : undefined}
+                error={error}
+                onSubmitEditing={() => inputRefs.current.firstname?.focus()}
+              />
             )}
           />
         </YStack>
@@ -115,24 +161,20 @@ export default function GeneralInformation() {
           name="firstname"
           control={control}
           render={({field: {onChange, onBlur, value}}) => (
-            <>
-              <ThemedText style={styles.caption} type="caption">
-                {t.registration.generalInformation.firstname}
-              </ThemedText>
-              <Input
-                ref={(ref) => {
-                  inputRefs.current.firstname = ref;
-                }}
-                size="$4"
-                placeholder={t.registration.generalInformation.firstname}
-                value={value}
-                autoComplete="given-name"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                returnKeyType="next"
-                onSubmitEditing={() => inputRefs.current.lastname?.focus()}
-              />
-            </>
+            <Input
+              ref={(ref) => {
+                inputRefs.current.firstname = ref;
+              }}
+              label={t.registration.generalInformation.firstname}
+              size="$4"
+              placeholder={t.registration.generalInformation.firstname}
+              value={value}
+              autoComplete="given-name"
+              onChangeText={onChange}
+              onBlur={onBlur}
+              returnKeyType="next"
+              onSubmitEditing={() => inputRefs.current.lastname?.focus()}
+            />
           )}
         />
 
@@ -141,66 +183,54 @@ export default function GeneralInformation() {
           name="lastname"
           control={control}
           render={({field: {onChange, onBlur, value}}) => (
-            <>
-              <ThemedText style={styles.caption} type="caption">
-                {t.registration.generalInformation.lastname}
-              </ThemedText>
-              <Input
-                ref={(ref) => {
-                  inputRefs.current.lastname = ref;
-                }}
-                size="$4"
-                placeholder={t.registration.generalInformation.lastname}
-                value={value}
-                autoComplete="family-name"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                returnKeyType="next"
-                onSubmitEditing={() => inputRefs.current.phone?.focus()}
-              />
-            </>
+            <Input
+              ref={(ref) => {
+                inputRefs.current.lastname = ref;
+              }}
+              label={t.registration.generalInformation.lastname}
+              size="$4"
+              placeholder={t.registration.generalInformation.lastname}
+              value={value}
+              autoComplete="family-name"
+              onChangeText={onChange}
+              onBlur={onBlur}
+              returnKeyType="next"
+              onSubmitEditing={() => inputRefs.current.phone_number?.focus()}
+            />
           )}
         />
 
         {/* Phone */}
         <Controller
-          name="phone"
+          name="phone_number"
           control={control}
-          rules={rules.phone}
+          rules={rules.phone_number}
           render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
-            <>
-              <ThemedText
-                style={{
-                  ...styles.caption,
-                  color: error ? Colors[theme].error : Colors[theme].text,
-                }}
-                type="caption"
-              >
-                {t.registration.generalInformation.phoneNumber}
-              </ThemedText>
-              <Input
-                ref={(ref) => {
-                  inputRefs.current.phone = ref;
-                }}
-                size="$4"
-                placeholder="+49 000 0000000"
-                value={value}
-                autoComplete="tel"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                keyboardType="phone-pad"
-                returnKeyType="done"
-                onSubmitEditing={handleSubmit(onSubmit)}
-              />
-              {error && (
-                <ThemedText
-                  style={{color: Colors[theme].error, paddingTop: 4}}
-                  type="caption"
-                >
-                  {error.message}
-                </ThemedText>
-              )}
-            </>
+            <Input
+              ref={(ref) => {
+                inputRefs.current.phone_number = ref;
+              }}
+              label={t.registration.generalInformation.phoneNumber}
+              size="$4"
+              placeholder="+49 000 0000000"
+              value={value}
+              error={error}
+              autoComplete="tel"
+              onChangeText={onChange}
+              onBlur={onBlur}
+              keyboardType="phone-pad"
+              returnKeyType="done"
+              onSubmitEditing={handleSubmit(onSubmit)}
+              leftIcon={
+                <Phone
+                  size={22}
+                  zIndex={1}
+                  position="absolute"
+                  top={11}
+                  left={12}
+                />
+              }
+            />
           )}
         />
 
@@ -234,8 +264,12 @@ export default function GeneralInformation() {
         </XStack>
 
         {/* Submit */}
-        <YStack flex={1} paddingBottom={40} justifyContent="flex-end">
-          <PrimaryButton onPress={handleSubmit(onSubmit)}>
+        <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
+          <PrimaryButton
+            loading={loading}
+            disabled={loading}
+            onPress={handleSubmit(onSubmit)}
+          >
             <ThemedText type="labelBold">
               {t.registration.common.continue}
             </ThemedText>
@@ -254,6 +288,5 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingTop: 40,
   },
-  caption: {paddingBottom: 4, paddingTop: 20},
   label: {paddingRight: 12},
 });

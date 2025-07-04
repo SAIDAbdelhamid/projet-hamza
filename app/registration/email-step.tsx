@@ -1,16 +1,21 @@
+import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
 import {ThemedView} from "@/components/ThemedView";
 import {Colors} from "@/constants/Colors";
 import en from "@/constants/lang/en.json";
 import fr from "@/constants/lang/fr.json";
+import {RootState} from "@/store";
+import {setRegistration} from "@/store/slices/registrationSlice";
 import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
+import {ChevronLeft, Mail} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
-import {useLayoutEffect} from "react";
+import {useLayoutEffect, useState} from "react";
 import {Controller, useForm} from "react-hook-form";
 import {ScrollView, StyleSheet} from "react-native";
-import {Input, Switch, XStack, YStack} from "tamagui";
+import {useDispatch, useSelector} from "react-redux";
+import {Switch, XStack, YStack} from "tamagui";
 
 type FormData = {
   email: string;
@@ -22,21 +27,35 @@ export default function EmailStep() {
   const router = useRouter();
   const headerHeight = useHeaderHeight();
   const {dark} = useTheme();
+  const [loading, setLoading] = useState(false);
   const theme = dark ? "dark" : "light";
   const t = false ? fr : en;
+  const registration = useSelector((state: RootState) => state.registration);
+  const dispatch = useDispatch();
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: t.registration.emailStep.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
+      headerLeft: () => (
+        <ChevronLeft
+          onPress={() =>
+            navigation.canGoBack()
+              ? navigation.goBack()
+              : router.replace("/registration/intro")
+          }
+          marginRight={20}
+          size={24}
+        />
+      ),
     });
   });
 
   const {control, handleSubmit} = useForm<FormData>({
     defaultValues: {
-      email: "",
-      email_hidden: false,
+      email: registration.email,
+      email_hidden: registration.email_hidden,
     },
   });
 
@@ -50,9 +69,16 @@ export default function EmailStep() {
     },
   };
 
-  const onSubmit = (data: FormData) => {
-    console.log("Form submitted:", data);
-    router.navigate("/registration/email-otp");
+  const onSubmit = async (data: FormData) => {
+    dispatch(
+      setRegistration({
+        ...registration,
+        step: "CREATE_PASSWORD",
+        email: data.email,
+        email_hidden: data.email_hidden,
+      })
+    );
+    router.navigate("/registration/create-password");
   };
 
   return (
@@ -63,37 +89,29 @@ export default function EmailStep() {
           control={control}
           rules={rules.email}
           render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
-            <>
-              <ThemedText
-                style={{
-                  ...styles.caption,
-                  color: error ? Colors[theme].error : Colors[theme].text,
-                }}
-                type="caption"
-              >
-                {t.registration.emailStep.email}
-              </ThemedText>
-              <Input
-                size="$4"
-                keyboardType="email-address"
-                autoComplete="email"
-                placeholder={t.registration.emailStep.emailPlaceholder}
-                value={value ? value.toString() : undefined}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                borderColor={error ? Colors[theme].error : undefined}
-                returnKeyType={"send"}
-                onSubmitEditing={handleSubmit(onSubmit)}
-              />
-              {error && (
-                <ThemedText
-                  style={{color: Colors[theme].error, paddingTop: 4}}
-                  type="caption"
-                >
-                  {error.message}
-                </ThemedText>
-              )}
-            </>
+            <Input
+              label={t.registration.emailStep.email}
+              leftIcon={
+                <Mail
+                  size={22}
+                  zIndex={1}
+                  position="absolute"
+                  top={11}
+                  left={12}
+                />
+              }
+              size="$4"
+              keyboardType="email-address"
+              autoComplete="email"
+              autoFocus
+              placeholder={t.registration.emailStep.emailPlaceholder}
+              value={value ? value.toString() : undefined}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              error={error}
+              returnKeyType={"send"}
+              onSubmitEditing={handleSubmit(onSubmit)}
+            />
           )}
         />
 
@@ -125,8 +143,12 @@ export default function EmailStep() {
           />
         </XStack>
 
-        <YStack flex={1} paddingBottom={40} justifyContent="flex-end">
-          <PrimaryButton onPress={handleSubmit(onSubmit)}>
+        <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
+          <PrimaryButton
+            loading={loading}
+            disabled={loading}
+            onPress={handleSubmit(onSubmit)}
+          >
             <ThemedText type="labelBold">
               {t.registration.emailStep.confirmMail}
             </ThemedText>
@@ -145,6 +167,5 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingTop: 40,
   },
-  caption: {paddingBottom: 4, paddingTop: 20},
   label: {paddingRight: 12},
 });

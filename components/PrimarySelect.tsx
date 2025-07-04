@@ -2,24 +2,23 @@ import {Colors} from "@/constants/Colors";
 import {useTheme} from "@react-navigation/native";
 import React, {ReactNode} from "react";
 import {
-  ActivityIndicator,
   StyleSheet,
   TouchableHighlight,
   TouchableHighlightProps,
-  View,
 } from "react-native";
+import {View} from "tamagui";
 import {LinearGradient} from "tamagui/linear-gradient";
 
-type PrimaryButtonProps = TouchableHighlightProps & {
+type PrimarySelectProps = TouchableHighlightProps & {
   children?: ReactNode;
-  loading?: boolean;
+  unselected?: boolean;
 };
 
-export default function PrimaryButton({
+export default function PrimarySelect({
   children,
-  loading = false,
+  unselected,
   ...props
-}: PrimaryButtonProps) {
+}: PrimarySelectProps) {
   const {dark} = useTheme();
   const theme = dark ? "dark" : "light";
   return (
@@ -32,19 +31,16 @@ export default function PrimaryButton({
         height: (props.style as any)?.height || 48,
       }}
     >
-      {props.disabled ? (
+      {unselected ? (
         <View
           style={{
-            ...styles.disabledContainer,
-            backgroundColor: Colors[theme].disabled,
+            ...styles.unselectedContainer,
+            borderColor: Colors[theme].border,
+            backgroundColor: Colors[theme].select,
             borderRadius: (props.style as any)?.borderRadius || 15,
           }}
         >
-          {loading ? (
-            children
-          ) : (
-            <ActivityIndicator color={Colors[theme].text} />
-          )}
+          {children}
         </View>
       ) : (
         <LinearGradient
@@ -66,7 +62,7 @@ export default function PrimaryButton({
 }
 
 const styles = StyleSheet.create({
-  disabledContainer: {
+  unselectedContainer: {
     justifyContent: "center",
     alignItems: "center",
     height: "100%",

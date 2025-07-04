@@ -1,3 +1,4 @@
+import {persistor, store} from "@/store";
 import config from "@/utils/tamagui-config";
 import {
   Inter_400Regular,
@@ -6,20 +7,22 @@ import {
   Inter_900Black,
   useFonts,
 } from "@expo-google-fonts/inter";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-  useTheme,
-} from "@react-navigation/native";
+import {DarkTheme, DefaultTheme, ThemeProvider} from "@react-navigation/native";
 import {Slot} from "expo-router";
-import {KeyboardAvoidingView, Platform, StatusBar} from "react-native";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+} from "react-native";
 import "react-native-reanimated";
-import {createTamagui, TamaguiProvider} from "tamagui";
+import {Provider} from "react-redux";
+import {PersistGate} from "redux-persist/integration/react";
+import {createTamagui, TamaguiProvider, View} from "tamagui";
 
 export default function RootLayout() {
   // const colorScheme = useColorScheme();
-  const {dark} = useTheme();
+  // const {dark} = useTheme();
   const theme = "dark";
   const [loaded] = useFonts({
     Inter_900Black,
@@ -36,15 +39,27 @@ export default function RootLayout() {
   const configTamagui = createTamagui(config);
   return (
     <TamaguiProvider config={configTamagui} defaultTheme={theme!}>
-      <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{flex: 1}}
-        >
-          <Slot />
-          <StatusBar barStyle="light-content" />
-        </KeyboardAvoidingView>
-      </ThemeProvider>
+      <Provider store={store}>
+        <PersistGate loading={<Loading />} persistor={persistor}>
+          <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={{flex: 1}}
+            >
+              <Slot />
+              <StatusBar barStyle="light-content" />
+            </KeyboardAvoidingView>
+          </ThemeProvider>
+        </PersistGate>
+      </Provider>
     </TamaguiProvider>
+  );
+}
+
+function Loading() {
+  return (
+    <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
+      <ActivityIndicator />
+    </View>
   );
 }

@@ -1,16 +1,21 @@
+import {postSendOtp, postVerifyOtp} from "@/api/apis";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
 import {ThemedView} from "@/components/ThemedView";
 import {Colors} from "@/constants/Colors";
 import en from "@/constants/lang/en.json";
 import fr from "@/constants/lang/fr.json";
+import {RootState} from "@/store";
+import {setRegistration} from "@/store/slices/registrationSlice";
 import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
+import {ChevronLeft} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
-import {useLayoutEffect} from "react";
+import {useEffect, useLayoutEffect, useState} from "react";
 import {Controller, useForm} from "react-hook-form";
-import {Platform, ScrollView, StyleSheet} from "react-native";
+import {Alert, Platform, ScrollView, StyleSheet} from "react-native";
 import {OtpInput} from "react-native-otp-entry";
+import {useDispatch, useSelector} from "react-redux";
 import {XStack, YStack} from "tamagui";
 
 type FormData = {
@@ -20,22 +25,47 @@ type FormData = {
 export default function EmailOtp() {
   const router = useRouter();
   const headerHeight = useHeaderHeight();
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const {dark} = useTheme();
   const theme = dark ? "dark" : "light";
   const t = false ? fr : en;
+  const registration = useSelector((state: RootState) => state.registration);
+  const dispatch = useDispatch();
+  const [secondsLeft, setSecondsLeft] = useState(60);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: t.registration.emailOtp.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
+      headerLeft: () => (
+        <ChevronLeft
+          onPress={() =>
+            navigation.canGoBack()
+              ? navigation.goBack()
+              : router.replace("/registration/general-information")
+          }
+          marginRight={20}
+          size={24}
+        />
+      ),
     });
   });
 
+  useEffect(() => {
+    if (secondsLeft === 0) return;
+
+    const interval = setInterval(() => {
+      setSecondsLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [secondsLeft]);
+
   const {control, handleSubmit} = useForm<FormData>({
     defaultValues: {
-      otp: "",
+      otp: registration.otp,
     },
   });
 
@@ -48,9 +78,32 @@ export default function EmailOtp() {
       },
     },
   };
-  const onSubmit = (data: FormData) => {
-    console.log("Form submitted:", data);
-    router.navigate("/registration/create-password");
+  const onSubmit = async (data: FormData) => {
+    setLoading(true);
+    try {
+      const response = await postVerifyOtp({
+        otp: data.otp,
+        email: registration.email,
+      });
+      if (response.success) {
+        dispatch(
+          setRegistration({
+            ...registration,
+            step: "ACCOUNT_TYPE",
+            otp: data.otp,
+          })
+        );
+        router.navigate("/registration/account-type");
+      }
+    } catch (e: any) {
+      const error = e.response.data;
+      Alert.alert(
+        "Error " + error.statusCode,
+        error.error + " : " + error.message
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,7 +121,9 @@ export default function EmailOtp() {
                 }}
                 type="labelRegular"
               >
-                {t.registration.emailOtp.sendTo} t•••@gmail.com»
+                {t.registration.emailOtp.sendTo} «
+                {registration.email[0].toLowerCase()}•••
+                {extractDomain(registration.email)}»
               </ThemedText>
               <OtpInput
                 numberOfDigits={6}
@@ -85,6 +140,7 @@ export default function EmailOtp() {
                 onFilled={onChange}
                 textInputProps={{
                   accessibilityLabel: "One-Time Password",
+                  onSubmitEditing: handleSubmit(onSubmit),
                 }}
                 textProps={{
                   accessibilityRole: "text",
@@ -113,7 +169,7 @@ export default function EmailOtp() {
               />
               {error && (
                 <ThemedText
-                  style={{color: Colors[theme].error, paddingBottom: 4}}
+                  style={{color: Colors[theme].error, paddingTop: 4}}
                   type="caption"
                 >
                   {error.message}
@@ -123,16 +179,29 @@ export default function EmailOtp() {
           )}
         />
         <XStack>
-          <ThemedText
-            style={{...styles.resendCodeText, color: Colors[theme].label}}
-            type="label"
-          >
-            {t.registration.emailOtp.resendCode}
-          </ThemedText>
-          <ThemedText type="labelSemiBold">59s</ThemedText>
+          {secondsLeft === 0 ? (
+            <ThemedText
+              onPress={async () => {
+                await postSendOtp({email: registration.email});
+                setSecondsLeft(60);
+              }}
+              style={{...styles.resendCodeText, color: Colors[theme].label}}
+              type="label"
+            >
+              {t.registration.emailOtp.resendCode}
+            </ThemedText>
+          ) : (
+            <ThemedText type="labelSemiBold">
+              {t.registration.emailOtp.attemptIn} {secondsLeft}s
+            </ThemedText>
+          )}
         </XStack>
-        <YStack flex={1} paddingBottom={40} justifyContent="flex-end">
-          <PrimaryButton onPress={handleSubmit(onSubmit)}>
+        <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
+          <PrimaryButton
+            loading={loading}
+            disabled={loading}
+            onPress={handleSubmit(onSubmit)}
+          >
             <ThemedText type="labelBold">
               {t.registration.common.continue}
             </ThemedText>
@@ -142,7 +211,10 @@ export default function EmailOtp() {
     </ThemedView>
   );
 }
-
+function extractDomain(email: string) {
+  const match = email.match(/@[\w.-]+\.[a-z]{2,}$/i);
+  return match ? match[0] : null;
+}
 const styles = StyleSheet.create({
   container: {flex: 1},
   contentContainer: {

@@ -1,16 +1,25 @@
+import {patchUserType} from "@/api/apis";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
 import {ThemedView} from "@/components/ThemedView";
 import {Colors} from "@/constants/Colors";
 import en from "@/constants/lang/en.json";
 import fr from "@/constants/lang/fr.json";
+import {RootState} from "@/store";
+import {setRegistration} from "@/store/slices/registrationSlice";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
-import {User} from "@tamagui/lucide-icons";
+import {ChevronLeft, User} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
 import {useLayoutEffect, useState} from "react";
-import {GestureResponderEvent, ScrollView, StyleSheet} from "react-native";
+import {
+  Alert,
+  GestureResponderEvent,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
+import {useDispatch, useSelector} from "react-redux";
 import {Button, View, YStack} from "tamagui";
 import {LinearGradient} from "tamagui/linear-gradient";
 
@@ -19,21 +28,69 @@ export default function AccountType() {
   const headerHeight = useHeaderHeight();
   const navigation = useNavigation();
   const {dark} = useTheme();
+  const [loading, setLoading] = useState(false);
   const theme = dark ? "dark" : "light";
   const t = false ? fr : en;
-  const [selected, setSelected] = useState("");
+  const registration = useSelector((state: RootState) => state.registration);
+  const dispatch = useDispatch();
+  const [isSeller, setIsSeller] = useState(registration.is_seller);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: t.registration.accountType.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
+      headerLeft: () => (
+        <ChevronLeft
+          onPress={() =>
+            navigation.canGoBack()
+              ? navigation.goBack()
+              : router.replace("/registration/general-information")
+          }
+          marginRight={20}
+          size={24}
+        />
+      ),
     });
   });
 
-  const onSubmit = () => {
-    console.log("Form submitted:" + selected);
-    router.navigate("/registration/account-categories");
+  const onSubmit = async () => {
+    if (isSeller) {
+      setLoading(true);
+      try {
+        const response = await patchUserType({
+          is_seller: isSeller,
+        });
+        if (response.success) {
+          dispatch(
+            setRegistration({
+              ...registration,
+              step: "ACCOUNT_CATEGORIES",
+              is_seller: isSeller,
+            })
+          );
+          router.navigate("/registration/account-categories");
+        }
+      } catch (e: any) {
+        const error = e.response.data;
+        Alert.alert(
+          "Error " + error.statusCode,
+          error.error + " : " + error.message
+        );
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      dispatch(
+        setRegistration({
+          ...registration,
+          step: "ACCOUNT_CATEGORIES",
+          is_seller: isSeller,
+        })
+      );
+
+      router.navigate("/registration/account-categories");
+    }
   };
 
   return (
@@ -41,18 +98,22 @@ export default function AccountType() {
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <YStack flex={1} justifyContent="center">
           <ItemType
-            onPress={() => setSelected("standard")}
-            selected={selected === "standard"}
+            onPress={() => setIsSeller(false)}
+            selected={!isSeller}
             type="standard"
           />
           <ItemType
-            onPress={() => setSelected("business")}
-            selected={selected === "business"}
+            onPress={() => setIsSeller(true)}
+            selected={isSeller}
             type="business"
           />
         </YStack>
-        <YStack flex={1} paddingBottom={40} justifyContent="flex-end">
-          <PrimaryButton onPress={onSubmit}>
+        <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
+          <PrimaryButton
+            loading={loading}
+            disabled={loading}
+            onPress={onSubmit}
+          >
             <ThemedText type="labelBold">
               {t.registration.common.continue}
             </ThemedText>

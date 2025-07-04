@@ -52,6 +52,7 @@
       "title": "Confirmez votre email",
       "sendTo": "Code envoyé à",
       "resendCode": "Renvoyer le code",
+      "attemptIn": "Prochaine tentative dans",
       "otpMatch": "Le code est obligatoire",
       "lengthMatch": "Le code doit contenir exactement 6 chiffres."
     },
@@ -82,6 +83,7 @@
     },
     "socialNetwork": {
       "title": "Réseau social",
+      "search": "Recherche",
       "linkSocial": "Collez le lien vers votre profil social",
       "connectSocial": "Connectez-vous via un compte social"
     }

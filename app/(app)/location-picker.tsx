@@ -1,3 +1,4 @@
+import {getCountriesCities} from "@/api/restcountries";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
 import {Colors} from "@/constants/Colors";
@@ -7,8 +8,9 @@ import MaskedView from "@react-native-masked-view/masked-view";
 import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
 import {ChevronDown, ChevronLeft, X} from "@tamagui/lucide-icons";
+import * as Location from "expo-location";
 import {useNavigation, useRouter} from "expo-router";
-import React, {useLayoutEffect, useState} from "react";
+import React, {useEffect, useLayoutEffect, useState} from "react";
 import {Platform, StyleSheet, TouchableHighlight} from "react-native";
 import RNPickerSelect, {Item} from "react-native-picker-select";
 import {View, YStack} from "tamagui";
@@ -16,18 +18,21 @@ import {LinearGradient} from "tamagui/linear-gradient";
 
 export default function LocationPicker() {
   const t = false ? fr : en;
+  const [location, setLocation] = useState<Location.LocationObject | null>(
+    null
+  );
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
   const navigation = useNavigation();
   const headerHeight = useHeaderHeight();
   const {dark} = useTheme();
   const theme = dark ? "dark" : "light";
-  const [selectedCountry, setSelectedCountry] = useState();
-  const [selectedCity, setSelectedCity] = useState();
-  const items = [
-    {label: "Football", value: "football"},
-    {label: "Baseball", value: "baseball"},
-    {label: "Hockey", value: "hockey"},
-  ];
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [countries, setCountries] = useState<
+    {value: string; label: string; cities: string[]}[]
+  >([]);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerStyle: {backgroundColor: Colors[theme].header},
@@ -44,6 +49,27 @@ export default function LocationPicker() {
     });
   });
 
+  useEffect(() => {
+    getCountriesCities().then((response) => {
+      const countriesList = response.data.map((c) => ({
+        label: c.country,
+        value: c.country,
+        cities: c.cities,
+      }));
+      setCountries(countriesList);
+    });
+  }, []);
+
+  async function getCurrentLocation() {
+    let {status} = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      setErrorMsg("Permission to access location was denied");
+      return;
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+    setLocation(location);
+  }
   return (
     <View
       flex={1}
@@ -51,29 +77,54 @@ export default function LocationPicker() {
       paddingTop={24 + headerHeight}
       backgroundColor={Colors[theme].modal}
     >
-      <PrimaryButton onPress={() => router.navigate("/social-network")}>
-        <ThemedText type="labelBold">
-          {t.app.locationPicker.useCurrent}
+      <YStack flex={1}>
+        <PrimaryButton onPress={() => getCurrentLocation()}>
+          <ThemedText type="labelBold">
+            {t.app.locationPicker.useCurrent}
+          </ThemedText>
+        </PrimaryButton>
+        {errorMsg && (
+          <ThemedText
+            style={{paddingTop: 4, color: Colors[theme].error}}
+            type="label"
+          >
+            {errorMsg}
+          </ThemedText>
+        )}
+
+        <ThemedText style={styles.selectTitle} type="label">
+          {!location
+            ? t.app.locationPicker.selectManually
+            : "latitude : " +
+              location.coords.latitude +
+              " \n longitude : " +
+              location.coords.longitude}
         </ThemedText>
-      </PrimaryButton>
+        <Dropdown
+          value={selectedCountry}
+          onValueChange={(val) => {
+            setSelectedCountry(val);
+            console.log(val);
+          }}
+          items={countries}
+          placeholder={{label: t.app.locationPicker.country, value: ""}}
+        />
 
-      <ThemedText style={styles.selectTitle} type="labelRegular">
-        {t.app.locationPicker.selectManually}
-      </ThemedText>
-      <Dropdown
-        value={selectedCountry}
-        onValueChange={(val) => setSelectedCountry(val)}
-        items={items}
-        placeholder={{label: t.app.locationPicker.country, value: ""}}
-      />
-      <Dropdown
-        value={selectedCity}
-        onValueChange={(val) => setSelectedCity(val)}
-        items={items}
-        placeholder={{label: t.app.locationPicker.city, value: ""}}
-      />
-
-      <YStack flex={1} paddingBottom={40} justifyContent="flex-end">
+        <Dropdown
+          value={selectedCity}
+          onValueChange={(val) => setSelectedCity(val)}
+          items={
+            countries
+              .find((c) => c.value === selectedCountry)
+              ?.cities.map((city) => ({
+                label: city,
+                value: city,
+              })) || []
+          }
+          placeholder={{label: t.app.locationPicker.city, value: ""}}
+        />
+      </YStack>
+      <YStack height={160} paddingBottom={20} justifyContent="flex-end">
         <ThemedText style={styles.skipLabel} type="label">
           {t.app.common.later}
         </ThemedText>
