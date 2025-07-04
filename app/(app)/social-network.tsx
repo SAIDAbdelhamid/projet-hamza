@@ -95,6 +95,7 @@ export default function SocialNetwork() {
                 />
               }
               size={"$4"}
+              backgroundColor={"transparent"}
               error={error}
               placeholder={t.app.socialNetwork.search}
               onChangeText={onChange}
