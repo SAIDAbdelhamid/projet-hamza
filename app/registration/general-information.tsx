@@ -1,5 +1,4 @@
-import {postRegister} from "@/api/apis";
-import ws from "@/api/axiosConfig";
+import {patchUser} from "@/api/apis";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
@@ -13,7 +12,6 @@ import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
 import {ChevronLeft, Phone} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
-import * as SecureStore from "expo-secure-store";
 import {useLayoutEffect, useRef, useState} from "react";
 import {Controller, useForm} from "react-hook-form";
 import {Alert, ScrollView, StyleSheet, TextInput} from "react-native";
@@ -45,29 +43,37 @@ export default function GeneralInformation() {
       headerTitle: t.registration.generalInformation.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
+      // animation: "slide_from_left",
       headerLeft: () => (
         <ChevronLeft
-          onPress={() =>
-            navigation.canGoBack()
-              ? navigation.goBack()
-              : router.replace("/registration/create-password")
-          }
+          onPress={() => {
+            dispatch(
+              setRegistration({
+                ...registration,
+                step: "EMAIL_OTP",
+              })
+            );
+            router.replace("/registration/email-otp");
+          }}
           marginRight={20}
           size={24}
         />
       ),
     });
-  });
+  }, []);
 
-  const {control, handleSubmit} = useForm<FormData>({
+  const {control, handleSubmit, watch} = useForm<FormData>({
     defaultValues: {
       username: registration.username,
       firstname: registration.firstname,
       lastname: registration.lastname,
       phone_number: registration.phone_number,
-      phone_hidden: registration.phone_hidden,
+      phone_hidden: !!registration.phone_hidden,
     },
   });
+
+  const usernameValue = watch("username");
+
   const rules = {
     username: {required: t.registration.generalInformation.usernameRequired},
     phone_number: {
@@ -81,28 +87,18 @@ export default function GeneralInformation() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      const response = await postRegister({
+      const response = await patchUser({
         username: data.username,
         firstname: data.firstname,
         lastname: data.lastname,
-        password: registration.password,
-        password_confirm: registration.password,
-        email: registration.email,
         phone_number: data.phone_number,
         phone_hidden: data.phone_hidden,
       });
-      console.log(response);
       if (response) {
-        if (response.access_token) {
-          ws.defaults.headers.common["Authorization"] =
-            `Bearer ${response.access_token}`;
-          await SecureStore.setItemAsync("access_token", response.access_token);
-        }
-
         dispatch(
           setRegistration({
             ...registration,
-            step: "EMAIL_OTP",
+            step: "ACCOUNT_TYPE",
             username: data.username,
             firstname: data.firstname,
             lastname: data.lastname,
@@ -110,7 +106,7 @@ export default function GeneralInformation() {
             phone_hidden: data.phone_hidden,
           })
         );
-        router.navigate("/registration/email-otp");
+        router.replace("/registration/account-type");
       }
     } catch (e: any) {
       const error = e.response;
@@ -252,7 +248,7 @@ export default function GeneralInformation() {
                 id="phone_hidden"
                 size="$3"
                 checked={!value}
-                onCheckedChange={onChange}
+                onCheckedChange={() => onChange(!value)}
               >
                 <Switch.Thumb
                   animation="quick"
@@ -267,7 +263,7 @@ export default function GeneralInformation() {
         <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
           <PrimaryButton
             loading={loading}
-            disabled={loading}
+            disabled={loading || !usernameValue}
             onPress={handleSubmit(onSubmit)}
           >
             <ThemedText type="labelBold">

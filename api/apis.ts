@@ -5,6 +5,21 @@ export const postLogin = async ({username, password}: TRequestLogin) =>
     .data as TResponseLogin;
 
 export const postRegister = async ({
+  email,
+  password,
+  password_confirm,
+  email_hidden,
+}: TRequestRegister) =>
+  (
+    await axios.post("/app-auth/register", {
+      email: email.toLowerCase(),
+      password,
+      password_confirm,
+      email_hidden,
+    })
+  ).data as TResponseLogin & TErrorRegister;
+
+export const patchUser = async ({
   username,
   email,
   password,
@@ -13,11 +28,11 @@ export const postRegister = async ({
   lastname,
   phone_number,
   phone_hidden,
-}: TRequestRegister) =>
+}: TPatchUser) =>
   (
-    await axios.post("/app-auth/register", {
+    await axios.patch("/api/me", {
       username,
-      email: email.toLowerCase(),
+      email: email?.toLowerCase(),
       password,
       password_confirm,
       firstname,
@@ -26,6 +41,9 @@ export const postRegister = async ({
       phone_hidden,
     })
   ).data as TResponseLogin & TErrorRegister;
+
+export const getUser = async () =>
+  (await axios.get("/api/me")).data as TUserInfo & TErrorRegister;
 
 export const postSendOtp = async ({email}: {email: string}) =>
   (
@@ -105,14 +123,20 @@ type TResponseLogin = {
   session_state: string;
 };
 type TRequestRegister = {
-  username: string;
   email: string;
   password: string;
   password_confirm: string;
-  firstname: string;
-  lastname: string;
-  phone_number: string;
-  phone_hidden: boolean;
+  email_hidden: boolean;
+};
+type TPatchUser = {
+  username?: string;
+  email?: string;
+  password?: string;
+  password_confirm?: string;
+  firstname?: string;
+  lastname?: string;
+  phone_number?: string;
+  phone_hidden?: boolean;
 };
 type TErrorRegister = {
   username: string[];
@@ -133,8 +157,8 @@ export type TCategorie = {
   updated_at: string;
 };
 type TSocial = {
-  username: string;
-  platform:
+  username?: string;
+  platform?:
     | "FACEBOOK"
     | "INSTAGRAM"
     | "TWITTER"
@@ -145,17 +169,17 @@ type TSocial = {
     | "SNAPCHAT"
     | "WHATSAPP"
     | "TELEGRAM";
-  profile_url: string;
-  image_url: string;
+  profile_url?: string;
+  image_url?: string;
 };
 type TRequestLocation = {
-  id_api: string;
-  lat: number;
-  lng: number;
-  ip: string;
-  country: TCountry;
-  subdivision: TSubdivision;
-  city: TCity;
+  id_api?: string;
+  lat?: number;
+  lng?: number;
+  ip?: string;
+  country?: TCountry;
+  subdivision?: TSubdivision;
+  city?: TCity;
 };
 type TCountry = {
   name: string;
@@ -170,4 +194,31 @@ type TCity = {
   name: string;
   code: string;
   type: string;
+};
+type TUserInfo = {
+  age?: string;
+  auth_provider: string;
+  cover_image_url?: string;
+  created_at: Date;
+  date_of_birth?: string;
+  email: string;
+  email_hidden: boolean;
+  firstname: string;
+  id: string;
+  interested_categories?: string[];
+  is_actived: boolean;
+  is_blocked: boolean;
+  is_deleted: boolean;
+  is_verified: boolean;
+  last_login?: string;
+  lastname?: string;
+  location?: string;
+  phone_hidden: boolean;
+  phone_number: string;
+  phone_verified: boolean;
+  profile_image_url: string;
+  seller: string;
+  sexe: string;
+  updated_at: Date;
+  username: string;
 };

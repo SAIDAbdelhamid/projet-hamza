@@ -12,6 +12,16 @@ export default function Page() {
     if (access_token)
       ws.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
   }
+  const redirectTo = {
+    INTRO: "/registration/intro",
+    EMAIL_STEP: "/registration/email-step",
+    EMAIL_OTP: "/registration/email-otp",
+    CREATE_PASSWORD: "/registration/create-password",
+    GENERAL_INFORMATION: "/registration/general-information",
+    ACCOUNT_TYPE: "/registration/account-type",
+    ACCOUNT_CATEGORIES: "/registration/account-categories",
+    DONE: "/(app)/home",
+  } as const;
   useEffect(() => {
     getToken();
   }, []);
@@ -19,8 +29,11 @@ export default function Page() {
   return (
     <Redirect
       href={
-        registration.step === "DONE" ? "/(app)/home" : "/registration/intro"
+        registration.step
+          ? redirectTo[registration.step]
+          : "/registration/intro"
       }
     />
+    // <Redirect href={"/login"} />
   );
 }

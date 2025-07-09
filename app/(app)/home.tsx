@@ -1,12 +1,14 @@
+import {getUser} from "@/api/apis";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
 import {ThemedView} from "@/components/ThemedView";
 import en from "@/constants/lang/en.json";
 import fr from "@/constants/lang/fr.json";
 import {clearRegistration} from "@/store/slices/registrationSlice";
+import {clearUser} from "@/store/slices/userSlice";
 import {useNavigation, useRouter} from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import {useLayoutEffect} from "react";
+import {useEffect, useLayoutEffect} from "react";
 import {ScrollView, StyleSheet} from "react-native";
 import {useDispatch} from "react-redux";
 import {YStack} from "tamagui";
@@ -16,12 +18,26 @@ export default function Home() {
   const t = false ? fr : en;
   const router = useRouter();
   const navigation = useNavigation();
-
+  const token = SecureStore.getItem("access_token");
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "",
     });
   });
+
+  useEffect(() => {
+    async function getUserInfo() {
+      try {
+        const user = await getUser();
+        if (!user.seller) {
+          router.navigate("/(app)/categories");
+        } else {
+          router.navigate("/(app)/location-picker");
+        }
+      } catch (e) {}
+    }
+    getUserInfo();
+  }, [token]);
 
   const onPressLogout = () => {
     dispatch(clearRegistration());
@@ -41,7 +57,10 @@ export default function Home() {
           </PrimaryButton>
         </YStack>
         <YStack paddingTop={40}>
-          <PrimaryButton onPress={() => router.navigate("/social-network")}>
+          <PrimaryButton
+            onLongPress={() => dispatch(clearUser())}
+            onPress={() => router.navigate("/social-network")}
+          >
             <ThemedText type="labelBold">Social Network</ThemedText>
           </PrimaryButton>
         </YStack>

@@ -26,6 +26,12 @@ export default function RootLayout() {
           presentation: "modal",
         }}
       />
+      <Stack.Screen
+        name="categories"
+        options={{
+          presentation: "modal",
+        }}
+      />
     </Stack>
   );
 }

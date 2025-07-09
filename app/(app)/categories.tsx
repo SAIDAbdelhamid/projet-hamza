@@ -23,7 +23,7 @@ import {ActivityIndicator, Alert, ScrollView, StyleSheet} from "react-native";
 import {useDispatch, useSelector} from "react-redux";
 import {View, YStack} from "tamagui";
 
-export default function AccountCategories() {
+export default function Categories() {
   const router = useRouter();
   const headerHeight = useHeaderHeight();
   const navigation = useNavigation();
@@ -71,13 +71,7 @@ export default function AccountCategories() {
       headerLeft: () => (
         <ChevronLeft
           onPress={() => {
-            dispatch(
-              setRegistration({
-                ...registration,
-                step: "ACCOUNT_TYPE",
-              })
-            );
-            router.replace("/registration/account-type");
+            router.dismissAll();
           }}
           marginRight={20}
           size={24}

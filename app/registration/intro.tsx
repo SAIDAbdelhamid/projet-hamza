@@ -32,30 +32,16 @@ export default function IntroScreen() {
     navigation.setOptions({
       headerTitle: "",
     });
-  });
+  }, []);
 
   const onSubmit = () => {
-    const redirectTo = {
-      INTRO: "/registration/email-step",
-      EMAIL_STEP: "/registration/email-step",
-      EMAIL_OTP: "/registration/email-otp",
-      CREATE_PASSWORD: "/registration/create-password",
-      GENERAL_INFORMATION: "/registration/general-information",
-      ACCOUNT_TYPE: "/registration/account-type",
-      ACCOUNT_CATEGORIES: "/registration/account-categories",
-      DONE: "/(app)/home",
-    } as const;
-    if (registration.step) {
-      router.navigate(redirectTo[registration.step]);
-    } else {
-      dispatch(
-        setRegistration({
-          ...registration,
-          step: "EMAIL_STEP",
-        })
-      );
-      router.navigate("/registration/email-step");
-    }
+    dispatch(
+      setRegistration({
+        ...registration,
+        step: "EMAIL_STEP",
+      })
+    );
+    router.replace("/registration/email-step");
   };
 
   return (
@@ -119,12 +105,6 @@ export default function IntroScreen() {
               number={4}
               text={t.registration.intro.step4}
             />
-            {/* <TimelineItem
-              number={5}
-              checked={registration.step === "ACCOUNT_CATEGORIES"}
-              text={t.registration.intro.step5}
-              isLast={true}
-            /> */}
           </YStack>
           <PrimaryButton
             onLongPress={() => dispatch(clearRegistration())}

@@ -1,23 +1,35 @@
+import {patchSellerSocials} from "@/api/apis";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
 import {Colors} from "@/constants/Colors";
 import en from "@/constants/lang/en.json";
 import fr from "@/constants/lang/fr.json";
+import {RootState} from "@/store";
+import {setUser} from "@/store/slices/userSlice";
 import MaskedView from "@react-native-masked-view/masked-view";
 import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
-import {ChevronLeft, Paperclip, X} from "@tamagui/lucide-icons";
+import {
+  Check,
+  ChevronLeft,
+  Paperclip,
+  SendHorizontal,
+  X,
+} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
 import {useLayoutEffect} from "react";
 import {Controller, useForm} from "react-hook-form";
 import {
+  Alert,
+  ImageSourcePropType,
   Platform,
   ScrollView,
   StyleSheet,
   TouchableHighlight,
 } from "react-native";
-import {Button, Image, View, YStack} from "tamagui";
+import {useDispatch, useSelector} from "react-redux";
+import {Button, Image, View, XStack, YStack} from "tamagui";
 import {LinearGradient} from "tamagui/linear-gradient";
 
 type FormData = {
@@ -30,6 +42,8 @@ export default function SocialNetwork() {
   const router = useRouter();
   const navigation = useNavigation();
   const headerHeight = useHeaderHeight();
+  const user = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -53,19 +67,37 @@ export default function SocialNetwork() {
     },
   });
 
-  const rules = {
-    searchLink: {
-      // FACEBOOK: /^(https?://)(?:\w+.)?facebook.com/./i,
-      // TWITTER: /^(https?://)(?:\w+.)?(twitter|x).com/./i,
-      // INSTAGRAM: /^(https?://)(?:\w+.)?instagram.com/./i,
-      // LINKEDIN: /^(https?://)(?:\w+.)?linkedin.com/./i,
-      // YOUTUBE: /^(https?://)(?:\w+.)?youtube.com/./i,
-      // SNAPCHAT: /^(https?://)(?:\w+.)?snapchat.com/./i,
-      // WHATSAPP: /^(https?://)?chat.whatsapp.com/./i,
-      // TIKTOK: /^(https?://)(?:\w+.)?tiktok.com/./i,
-      // TELEGRAM: /^(https?://)(?:\w+.)?(telegram|t).me/./i,
-      // WECHAT: /^(https?://)?(www.)?wechat.com/./i,`
-    },
+  const onSubmit = async (data: FormData) => {
+    const socialInfo = extractSocialInfo(data.searchLink);
+    if (socialInfo) {
+      dispatch(
+        setUser({
+          ...user,
+          socials: user.socials.map((social) =>
+            socialInfo.platform === social.platform
+              ? {...social, username: socialInfo.username}
+              : social
+          ),
+        })
+      );
+    }
+  };
+
+  const sendToApi = async () => {
+    try {
+      await patchSellerSocials({
+        socials: user.socials.filter((s) => s.username),
+      });
+    } catch (e: any) {
+      const error = e.response;
+      console.log(e.response.data);
+      Alert.alert(
+        "Error " + error.status,
+        Object.values(e.response.data).flat().join("\n")
+      );
+    } finally {
+      router.navigate("/location-picker");
+    }
   };
 
   return (
@@ -78,7 +110,6 @@ export default function SocialNetwork() {
       <Controller
         name={"searchLink"}
         control={control}
-        rules={rules.searchLink}
         render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
           <>
             <ThemedText style={styles.titleLink} type="subTitle">
@@ -92,6 +123,16 @@ export default function SocialNetwork() {
                   position="absolute"
                   top={11}
                   left={12}
+                />
+              }
+              rightIcon={
+                <SendHorizontal
+                  onPress={handleSubmit(onSubmit)}
+                  size={22}
+                  zIndex={1}
+                  position="absolute"
+                  top={10}
+                  right={12}
                 />
               }
               size={"$4"}
@@ -110,94 +151,14 @@ export default function SocialNetwork() {
       </ThemedText>
       <YStack flex={1}>
         <ScrollView>
-          <Button
-            marginBottom={4}
-            marginTop={4}
-            flexDirection="row"
-            width={"100%"}
-            height={80}
-            justifyContent="flex-start"
-            borderColor={Colors[theme].border}
-            borderWidth={2}
-            onPress={() => console.log("Twitter")}
-          >
-            <Image
-              height={48}
-              width={48}
-              source={require("../../assets/images/twitter.png")}
-              borderRadius={24}
-              marginRight={12}
-              alignItems="center"
-              justifyContent="center"
+          {user.socials.map((item, index) => (
+            <SocialButton
+              key={index.toString()}
+              username={item.username}
+              platform={item.platform}
+              image_url={item.image_url}
             />
-            <ThemedText type="bodySmallMedium">Twitter</ThemedText>
-          </Button>
-          <Button
-            marginBottom={4}
-            marginTop={4}
-            flexDirection="row"
-            width={"100%"}
-            height={80}
-            justifyContent="flex-start"
-            borderColor={Colors[theme].border}
-            borderWidth={2}
-            onPress={() => console.log("Facebook")}
-          >
-            <Image
-              height={48}
-              width={48}
-              source={require("../../assets/images/facebook.png")}
-              borderRadius={24}
-              marginRight={12}
-              alignItems="center"
-              justifyContent="center"
-            />
-            <ThemedText type="bodySmallMedium">Facebook</ThemedText>
-          </Button>
-          <Button
-            marginBottom={4}
-            marginTop={4}
-            flexDirection="row"
-            width={"100%"}
-            height={80}
-            justifyContent="flex-start"
-            borderColor={Colors[theme].border}
-            borderWidth={2}
-            onPress={() => console.log("LinkedIn")}
-          >
-            <Image
-              height={48}
-              width={48}
-              source={require("../../assets/images/linkedin.png")}
-              borderRadius={24}
-              marginRight={12}
-              alignItems="center"
-              justifyContent="center"
-            />
-            <ThemedText type="bodySmallMedium">LinkedIn</ThemedText>
-          </Button>
-          <Button
-            marginBottom={4}
-            marginTop={4}
-            flexDirection="row"
-            justifyContent="flex-start"
-            width={"100%"}
-            height={80}
-            borderColor={Colors[theme].border}
-            borderWidth={2}
-            onPress={() => console.log("WhatsApp")}
-          >
-            <Image
-              height={48}
-              width={48}
-              source={require("../../assets/images/whatsapp.png")}
-              borderRadius={24}
-              marginRight={12}
-              alignItems="center"
-              justifyContent="center"
-            />
-            <ThemedText type="bodySmallMedium">WhatsApp</ThemedText>
-          </Button>
+          ))}
         </ScrollView>
       </YStack>
       <YStack height={160} paddingBottom={20} justifyContent="flex-end">
@@ -228,7 +189,7 @@ export default function SocialNetwork() {
             ></LinearGradient>
           </MaskedView>
         </TouchableHighlight>
-        <PrimaryButton onPress={() => router.navigate("/location-picker")}>
+        <PrimaryButton onPress={sendToApi}>
           <ThemedText type="labelBold">
             {t.registration.common.continue}
           </ThemedText>
@@ -238,6 +199,104 @@ export default function SocialNetwork() {
   );
 }
 
+const SocialButton = ({
+  platform,
+  image_url,
+  username,
+}: {
+  platform?: string;
+  image_url?: ImageSourcePropType | undefined | any;
+  username?: string;
+}) => {
+  const {dark} = useTheme();
+  const theme = dark ? "dark" : "light";
+
+  return (
+    <Button
+      marginBottom={4}
+      marginTop={4}
+      flexDirection="row"
+      width={"100%"}
+      flex={1}
+      height={"100%"}
+      minHeight={80}
+      justifyContent="flex-start"
+      borderColor={Colors[theme].border}
+      borderWidth={2}
+      onPress={() => console.log({platform, image_url, username})}
+    >
+      <Image
+        height={48}
+        width={48}
+        source={image_url}
+        borderRadius={24}
+        marginRight={12}
+        alignItems="center"
+        justifyContent="center"
+      />
+      {!username ? (
+        <ThemedText type="bodySmallMedium">
+          {capitalizeFirstLetter(platform?.toLocaleLowerCase() || "")}
+        </ThemedText>
+      ) : (
+        <XStack alignItems="center" justifyContent="space-between" flex={1}>
+          <YStack flex={1}>
+            <ThemedText
+              style={{paddingBottom: 4, paddingTop: 4}}
+              type="bodySmallMedium"
+            >
+              {username}
+            </ThemedText>
+            <ThemedText
+              style={{
+                paddingBottom: 4,
+                paddingTop: 4,
+                color: Colors[theme].label,
+              }}
+              type="label"
+            >
+              {capitalizeFirstLetter(platform?.toLocaleLowerCase() || "")}
+            </ThemedText>
+          </YStack>
+          <Check size={30} />
+        </XStack>
+      )}
+    </Button>
+  );
+};
+
+function capitalizeFirstLetter(str: string) {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function extractSocialInfo(url: string) {
+  const patterns = {
+    FACEBOOK: /^(https?:\/\/)?(?:\w+\.)?facebook\.com\/([^/?#]+)/i,
+    TWITTER: /^(https?:\/\/)?(?:\w+\.)?(twitter|x)\.com\/([^/?#]+)/i,
+    INSTAGRAM: /^(https?:\/\/)?(?:\w+\.)?instagram\.com\/([^/?#]+)/i,
+    LINKEDIN: /^(https?:\/\/)?(?:\w+\.)?linkedin\.com\/in\/([^/?#]+)/i,
+    YOUTUBE:
+      /^(https?:\/\/)?(?:\w+\.)?youtube\.com\/(channel|user|c)\/([^/?#]+)/i,
+    SNAPCHAT: /^(https?:\/\/)?(?:\w+\.)?snapchat\.com\/add\/([^/?#]+)/i,
+    WHATSAPP: /^(https?:\/\/)?chat\.whatsapp\.com\/([^/?#]+)/i,
+    TIKTOK: /^(https?:\/\/)?(?:\w+\.)?tiktok\.com\/@([^/?#]+)/i,
+    TELEGRAM: /^(https?:\/\/)?(?:\w+\.)?(telegram|t)\.me\/([^/?#]+)/i,
+    WECHAT: /^(https?:\/\/)?(?:www\.)?wechat\.com\/([^/?#]+)/i,
+  };
+
+  for (const [platform, regex] of Object.entries(patterns)) {
+    const match = url.match(regex);
+    if (match) {
+      return {
+        platform,
+        username: match[3] || match[2],
+      };
+    }
+  }
+
+  return null;
+}
 const styles = StyleSheet.create({
   titleLink: {paddingBottom: 4},
   titleConnection: {paddingTop: 24},

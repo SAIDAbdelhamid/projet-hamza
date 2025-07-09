@@ -40,19 +40,24 @@ export default function AccountType() {
       headerTitle: t.registration.accountType.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
+      // animation: "slide_from_left",
       headerLeft: () => (
         <ChevronLeft
-          onPress={() =>
-            navigation.canGoBack()
-              ? navigation.goBack()
-              : router.replace("/registration/general-information")
-          }
+          onPress={() => {
+            dispatch(
+              setRegistration({
+                ...registration,
+                step: "GENERAL_INFORMATION",
+              })
+            );
+            router.replace("/registration/general-information");
+          }}
           marginRight={20}
           size={24}
         />
       ),
     });
-  });
+  }, []);
 
   const onSubmit = async () => {
     if (isSeller) {
@@ -69,7 +74,7 @@ export default function AccountType() {
               is_seller: isSeller,
             })
           );
-          router.navigate("/registration/account-categories");
+          router.replace("/registration/account-categories");
         }
       } catch (e: any) {
         const error = e.response.data;
@@ -84,12 +89,12 @@ export default function AccountType() {
       dispatch(
         setRegistration({
           ...registration,
-          step: "ACCOUNT_CATEGORIES",
+          step: "DONE",
           is_seller: isSeller,
         })
       );
 
-      router.navigate("/registration/account-categories");
+      router.replace("/(app)/home");
     }
   };
 

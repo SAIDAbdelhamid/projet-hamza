@@ -1,3 +1,5 @@
+import {postRegister} from "@/api/apis";
+import ws from "@/api/axiosConfig";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
@@ -12,9 +14,10 @@ import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
 import {Check, ChevronLeft, LockKeyholeOpen} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import {useLayoutEffect, useRef, useState} from "react";
 import {Controller, useForm} from "react-hook-form";
-import {ScrollView, StyleSheet, TextInput} from "react-native";
+import {Alert, ScrollView, StyleSheet, TextInput} from "react-native";
 import {useDispatch, useSelector} from "react-redux";
 import {View, XStack, YStack} from "tamagui";
 import {LinearGradient} from "tamagui/linear-gradient";
@@ -41,19 +44,24 @@ export default function CreatePassword() {
       headerTitle: t.registration.createPassword.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
+      // animation: "slide_from_left",
       headerLeft: () => (
         <ChevronLeft
-          onPress={() =>
-            navigation.canGoBack()
-              ? navigation.goBack()
-              : router.replace("/registration/email-step")
-          }
+          onPress={() => {
+            dispatch(
+              setRegistration({
+                ...registration,
+                step: "EMAIL_STEP",
+              })
+            );
+            router.replace("/registration/email-step");
+          }}
           marginRight={20}
           size={24}
         />
       ),
     });
-  });
+  }, []);
 
   const {
     control,
@@ -124,15 +132,39 @@ export default function CreatePassword() {
   };
 
   const onSubmit = async (data: FormData) => {
-    dispatch(
-      setRegistration({
-        ...registration,
-        step: "GENERAL_INFORMATION",
+    setLoading(true);
+    try {
+      const response = await postRegister({
+        email: registration.email,
+        email_hidden: registration.email_hidden,
         password: data.password,
         password_confirm: data.password_confirm,
-      })
-    );
-    router.navigate("/registration/general-information");
+      });
+      if (response) {
+        if (response.access_token) {
+          ws.defaults.headers.common["Authorization"] =
+            `Bearer ${response.access_token}`;
+          await SecureStore.setItemAsync("access_token", response.access_token);
+        }
+        dispatch(
+          setRegistration({
+            ...registration,
+            step: "EMAIL_OTP",
+            password: data.password,
+            password_confirm: data.password_confirm,
+          })
+        );
+        router.replace("/registration/email-otp");
+      }
+    } catch (e: any) {
+      const error = e.response;
+      Alert.alert(
+        "Error " + error.status,
+        Object.values(e.response.data).flat().join("\n")
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -261,7 +293,9 @@ export default function CreatePassword() {
         <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
           <PrimaryButton
             loading={loading}
-            disabled={loading}
+            disabled={
+              loading || !passwordRules.every((rule: any) => rule.valid)
+            }
             onPress={handleSubmit(onSubmit)}
           >
             <ThemedText type="labelBold">

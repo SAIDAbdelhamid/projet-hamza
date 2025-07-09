@@ -39,19 +39,24 @@ export default function EmailOtp() {
       headerTitle: t.registration.emailOtp.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
+      // animation: "slide_from_left",
       headerLeft: () => (
         <ChevronLeft
-          onPress={() =>
-            navigation.canGoBack()
-              ? navigation.goBack()
-              : router.replace("/registration/general-information")
-          }
+          onPress={() => {
+            dispatch(
+              setRegistration({
+                ...registration,
+                step: "CREATE_PASSWORD",
+              })
+            );
+            router.replace("/registration/create-password");
+          }}
           marginRight={20}
           size={24}
         />
       ),
     });
-  });
+  }, []);
 
   useEffect(() => {
     if (secondsLeft === 0) return;
@@ -89,11 +94,11 @@ export default function EmailOtp() {
         dispatch(
           setRegistration({
             ...registration,
-            step: "ACCOUNT_TYPE",
+            step: "GENERAL_INFORMATION",
             otp: data.otp,
           })
         );
-        router.navigate("/registration/account-type");
+        router.replace("/registration/general-information");
       }
     } catch (e: any) {
       const error = e.response.data;

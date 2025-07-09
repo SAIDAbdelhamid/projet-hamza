@@ -40,7 +40,7 @@ export default function PrimaryButton({
             borderRadius: (props.style as any)?.borderRadius || 15,
           }}
         >
-          {loading ? (
+          {!loading ? (
             children
           ) : (
             <ActivityIndicator color={Colors[theme].text} />

@@ -1,4 +1,7 @@
 {
+  "login": {
+    "title": "Connexion"
+  },
   "registration": {
     "common": {
       "continue": "Continuer"

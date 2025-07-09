@@ -1,3 +1,4 @@
+import {patchLocation} from "@/api/apis";
 import {getCountriesCities} from "@/api/restcountries";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
@@ -11,7 +12,7 @@ import {ChevronDown, ChevronLeft, X} from "@tamagui/lucide-icons";
 import * as Location from "expo-location";
 import {useNavigation, useRouter} from "expo-router";
 import React, {useEffect, useLayoutEffect, useState} from "react";
-import {Platform, StyleSheet, TouchableHighlight} from "react-native";
+import {Alert, Platform, StyleSheet, TouchableHighlight} from "react-native";
 import RNPickerSelect, {Item} from "react-native-picker-select";
 import {View, YStack} from "tamagui";
 import {LinearGradient} from "tamagui/linear-gradient";
@@ -45,7 +46,7 @@ export default function LocationPicker() {
             size={24}
           />
         ) : undefined,
-      headerRight: () => <X onPress={() => navigation.goBack()} size={24} />,
+      headerRight: () => <X onPress={() => router.dismissAll()} size={24} />,
     });
   });
 
@@ -68,7 +69,21 @@ export default function LocationPicker() {
     }
 
     let location = await Location.getCurrentPositionAsync({});
-    setLocation(location);
+    try {
+      setLocation(location);
+      await patchLocation({
+        lat: location.coords.latitude,
+        lng: location.coords.longitude,
+      });
+    } catch (e: any) {
+      const error = e.response;
+      Alert.alert(
+        "Error " + error.status,
+        Object.values(e.response.data).flat().join("\n")
+      );
+    } finally {
+      router.dismissAll();
+    }
   }
   return (
     <View
@@ -104,7 +119,6 @@ export default function LocationPicker() {
           value={selectedCountry}
           onValueChange={(val) => {
             setSelectedCountry(val);
-            console.log(val);
           }}
           items={countries}
           placeholder={{label: t.app.locationPicker.country, value: ""}}

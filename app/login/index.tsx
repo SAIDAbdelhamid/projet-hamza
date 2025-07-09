@@ -1,3 +1,4 @@
+import {postLogin} from "@/api/apis";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
@@ -6,23 +7,23 @@ import {Colors} from "@/constants/Colors";
 import en from "@/constants/lang/en.json";
 import fr from "@/constants/lang/fr.json";
 import {RootState} from "@/store";
-import {setRegistration} from "@/store/slices/registrationSlice";
+import {setUser} from "@/store/slices/userSlice";
 import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
-import {ChevronLeft, Mail} from "@tamagui/lucide-icons";
+import {LockKeyholeOpen, Mail} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
-import {useLayoutEffect, useState} from "react";
+import {useLayoutEffect, useRef, useState} from "react";
 import {Controller, useForm} from "react-hook-form";
-import {ScrollView, StyleSheet} from "react-native";
+import {Alert, ScrollView, StyleSheet, TextInput} from "react-native";
 import {useDispatch, useSelector} from "react-redux";
-import {Switch, XStack, YStack} from "tamagui";
+import {YStack} from "tamagui";
 
 type FormData = {
   email: string;
-  email_hidden: boolean;
+  password: string;
 };
 
-export default function EmailStep() {
+export default function Login() {
   const navigation = useNavigation();
   const router = useRouter();
   const headerHeight = useHeaderHeight();
@@ -31,40 +32,27 @@ export default function EmailStep() {
   const theme = dark ? "dark" : "light";
   const t = false ? fr : en;
   // const {t} = useTranslate()
-  const registration = useSelector((state: RootState) => state.registration);
+  const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
+  const inputRefs = useRef<Record<string, TextInput | null>>({});
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: t.registration.emailStep.title,
+      headerTitle: t.login.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
-      headerLeft: () => (
-        <ChevronLeft
-          onPress={() => {
-            dispatch(
-              setRegistration({
-                ...registration,
-                step: "INTRO",
-              })
-            );
-            router.replace("/registration/intro");
-          }}
-          marginRight={20}
-          size={24}
-        />
-      ),
     });
   }, []);
 
   const {control, handleSubmit, watch} = useForm<FormData>({
     defaultValues: {
-      email: registration.email,
-      email_hidden: !!registration.email_hidden,
+      email: "",
+      password: "",
     },
   });
 
   const emailValue = watch("email");
+  const passwordValue = watch("password");
 
   const rules = {
     email: {
@@ -74,18 +62,34 @@ export default function EmailStep() {
         message: t.registration.emailStep.emailValid,
       },
     },
+    password: {
+      required: t.registration.createPassword.passwordRequired,
+    },
   };
 
   const onSubmit = async (data: FormData) => {
-    dispatch(
-      setRegistration({
-        ...registration,
-        step: "CREATE_PASSWORD",
-        email: data.email,
-        email_hidden: data.email_hidden,
-      })
-    );
-    router.replace("/registration/create-password");
+    try {
+      setLoading(true);
+      const userInfo = await postLogin({
+        username: data.email,
+        password: data.password,
+      });
+      dispatch(
+        setUser({
+          ...user,
+          ...userInfo,
+        })
+      );
+      router.replace("/(app)/home");
+    } catch (e: any) {
+      const error = e.response;
+      Alert.alert(
+        "Error " + error.status,
+        Object.values(e.response.data).flat().join("\n")
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -122,43 +126,52 @@ export default function EmailStep() {
           )}
         />
 
-        <XStack
-          alignItems="center"
-          justifyContent="space-between"
-          marginTop={12}
-          marginBottom={12}
-        >
-          <ThemedText style={styles.label} type="caption">
-            {t.registration.emailStep.showEmail}
-          </ThemedText>
-          <Controller
-            name="email_hidden"
-            control={control}
-            render={({field: {value, onChange}}) => (
-              <Switch
-                id="email_hidden"
-                size="$3"
-                checked={!value}
-                onCheckedChange={() => onChange(!value)}
-              >
-                <Switch.Thumb
-                  animation="quick"
-                  backgroundColor={Colors[theme].text}
+        <Controller
+          name={"password"}
+          control={control}
+          rules={rules.password}
+          render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
+            <Input
+              ref={(ref) => {
+                inputRefs.current.password = ref;
+              }}
+              isPassword
+              label={t.registration.createPassword.password}
+              leftIcon={
+                <LockKeyholeOpen
+                  size={22}
+                  zIndex={1}
+                  position="absolute"
+                  top={10}
+                  left={12}
                 />
-              </Switch>
-            )}
-          />
-        </XStack>
-
+              }
+              size="$4"
+              autoFocus
+              keyboardType={"default"}
+              autoComplete="current-password"
+              placeholder={t.registration.createPassword.passwordPlaceHolder}
+              value={value ? value.toString() : undefined}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              error={
+                error?.message ===
+                t.registration.createPassword.passwordRequired
+                  ? error
+                  : undefined
+              }
+              returnKeyType={"done"}
+              onSubmitEditing={handleSubmit(onSubmit)}
+            />
+          )}
+        />
         <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
           <PrimaryButton
             loading={loading}
-            disabled={loading || !emailValue}
+            disabled={loading || !emailValue || !passwordValue}
             onPress={handleSubmit(onSubmit)}
           >
-            <ThemedText type="labelBold">
-              {t.registration.emailStep.confirmMail}
-            </ThemedText>
+            <ThemedText type="labelBold">{t.login.title}</ThemedText>
           </PrimaryButton>
         </YStack>
       </ScrollView>
@@ -174,5 +187,4 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingTop: 40,
   },
-  label: {paddingRight: 12},
 });
