@@ -56,14 +56,14 @@ export default function Login() {
 
   const rules = {
     email: {
-      required: t.registration.emailStep.emailMatch,
+      required: t.login.emailMatch,
       pattern: {
         value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-        message: t.registration.emailStep.emailValid,
+        message: t.login.emailValid,
       },
     },
     password: {
-      required: t.registration.createPassword.passwordRequired,
+      required: t.login.passwordRequired,
     },
   };
 
@@ -71,7 +71,7 @@ export default function Login() {
     try {
       setLoading(true);
       const userInfo = await postLogin({
-        username: data.email,
+        email: data.email,
         password: data.password,
       });
       dispatch(
@@ -95,13 +95,16 @@ export default function Login() {
   return (
     <ThemedView style={{paddingTop: headerHeight, ...styles.container}}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
+        <ThemedText style={{paddingBottom: 4, paddingTop: 4}} type="title">
+          {t.login.title}
+        </ThemedText>
         <Controller
           name={"email"}
           control={control}
           rules={rules.email}
           render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
             <Input
-              label={t.registration.emailStep.email}
+              label={t.login.email}
               leftIcon={
                 <Mail
                   size={22}
@@ -115,13 +118,15 @@ export default function Login() {
               keyboardType="email-address"
               autoComplete="email"
               autoFocus
-              placeholder={t.registration.emailStep.emailPlaceholder}
+              placeholder={t.login.emailPlaceholder}
               value={value ? value.toString() : undefined}
               onChangeText={onChange}
               onBlur={onBlur}
               error={error}
-              returnKeyType={"send"}
-              onSubmitEditing={handleSubmit(onSubmit)}
+              returnKeyType={"next"}
+              onSubmitEditing={() => {
+                inputRefs.current.password?.focus();
+              }}
             />
           )}
         />
@@ -136,7 +141,7 @@ export default function Login() {
                 inputRefs.current.password = ref;
               }}
               isPassword
-              label={t.registration.createPassword.password}
+              label={t.login.password}
               leftIcon={
                 <LockKeyholeOpen
                   size={22}
@@ -147,18 +152,14 @@ export default function Login() {
                 />
               }
               size="$4"
-              autoFocus
               keyboardType={"default"}
               autoComplete="current-password"
-              placeholder={t.registration.createPassword.passwordPlaceHolder}
+              placeholder={t.login.passwordPlaceHolder}
               value={value ? value.toString() : undefined}
               onChangeText={onChange}
               onBlur={onBlur}
               error={
-                error?.message ===
-                t.registration.createPassword.passwordRequired
-                  ? error
-                  : undefined
+                error?.message === t.login.passwordRequired ? error : undefined
               }
               returnKeyType={"done"}
               onSubmitEditing={handleSubmit(onSubmit)}

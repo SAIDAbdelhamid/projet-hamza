@@ -1,6 +1,13 @@
 {
   "login": {
-    "title": "Login"
+    "title": "Login",
+    "email": "E-mail",
+    "password": "Password",
+    "passwordPlaceHolder": "Enter password",
+    "emailPlaceholder": "Enter e-mail",
+    "passwordRequired": "Password required",
+    "emailMatch": "Email is required",
+    "emailValid": "Invalid email address"
   },
   "registration": {
     "common": {

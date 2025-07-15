@@ -75,7 +75,11 @@ export default function SocialNetwork() {
           ...user,
           socials: user.socials.map((social) =>
             socialInfo.platform === social.platform
-              ? {...social, username: socialInfo.username}
+              ? {
+                  ...social,
+                  username: socialInfo.username,
+                  profile_url: data.searchLink,
+                }
               : social
           ),
         })
@@ -85,12 +89,17 @@ export default function SocialNetwork() {
 
   const sendToApi = async () => {
     try {
+      const socials = user.socials
+        .filter((s) => s.username)
+        .map((s) =>
+          Number.isInteger(s.image_url) ? {...s, image_url: ""} : s
+        );
+
       await patchSellerSocials({
-        socials: user.socials.filter((s) => s.username),
+        socials,
       });
     } catch (e: any) {
       const error = e.response;
-      console.log(e.response.data);
       Alert.alert(
         "Error " + error.status,
         Object.values(e.response.data).flat().join("\n")
@@ -141,6 +150,8 @@ export default function SocialNetwork() {
               placeholder={t.app.socialNetwork.search}
               onChangeText={onChange}
               onBlur={onBlur}
+              onSubmitEditing={handleSubmit(onSubmit)}
+              returnKeyType={"send"}
               value={value ? value.toString() : undefined}
             />
           </>

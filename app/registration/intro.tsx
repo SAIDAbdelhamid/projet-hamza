@@ -9,6 +9,7 @@ import {
   clearRegistration,
   setRegistration,
 } from "@/store/slices/registrationSlice";
+import {clearUser} from "@/store/slices/userSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {useNavigation, useRouter} from "expo-router";
 import {useLayoutEffect} from "react";
@@ -41,7 +42,10 @@ export default function IntroScreen() {
         step: "EMAIL_STEP",
       })
     );
-    router.replace("/registration/email-step");
+    router.replace({
+      pathname: "/registration/email-step",
+      params: {animation: "slide_from_right"},
+    });
   };
 
   return (
@@ -107,7 +111,10 @@ export default function IntroScreen() {
             />
           </YStack>
           <PrimaryButton
-            onLongPress={() => dispatch(clearRegistration())}
+            onLongPress={() => {
+              dispatch(clearRegistration());
+              dispatch(clearUser());
+            }}
             onPress={onSubmit}
           >
             <ThemedText type="labelBold">

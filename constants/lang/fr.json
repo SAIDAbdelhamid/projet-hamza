@@ -1,6 +1,13 @@
 {
   "login": {
-    "title": "Connexion"
+    "title": "Connexion",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "passwordPlaceHolder": "Entrez le mot de passe",
+    "emailPlaceholder": "Entrez l'e-mail",
+    "passwordRequired": "Mot de passe obligatoire",
+    "emailMatch": "L'e-mail est obligatoire",
+    "emailValid": "Adresse e-mail invalide"
   },
   "registration": {
     "common": {

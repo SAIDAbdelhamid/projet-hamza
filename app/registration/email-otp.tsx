@@ -49,7 +49,10 @@ export default function EmailOtp() {
                 step: "CREATE_PASSWORD",
               })
             );
-            router.replace("/registration/create-password");
+            router.replace({
+              pathname: "/registration/create-password",
+              params: {animation: "slide_from_left"},
+            });
           }}
           marginRight={20}
           size={24}
@@ -98,7 +101,10 @@ export default function EmailOtp() {
             otp: data.otp,
           })
         );
-        router.replace("/registration/general-information");
+        router.replace({
+          pathname: "/registration/general-information",
+          params: {animation: "slide_from_right"},
+        });
       }
     } catch (e: any) {
       const error = e.response.data;
@@ -111,6 +117,15 @@ export default function EmailOtp() {
     }
   };
 
+  const onBlurState = ({otp}: {otp?: string}) => {
+    dispatch(
+      setRegistration({
+        ...registration,
+        otp: otp ? otp : registration.otp,
+      })
+    );
+  };
+
   return (
     <ThemedView style={{paddingTop: headerHeight, ...styles.container}}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
@@ -118,7 +133,7 @@ export default function EmailOtp() {
           name={"otp"}
           control={control}
           rules={rules.otp}
-          render={({field: {onChange, onBlur}, fieldState: {error}}) => (
+          render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
             <>
               <ThemedText
                 style={{
@@ -140,7 +155,7 @@ export default function EmailOtp() {
                 type="numeric"
                 secureTextEntry={false}
                 focusStickBlinkingDuration={500}
-                onBlur={onBlur}
+                onBlur={() => onBlurState({otp: value})}
                 onTextChange={onChange}
                 onFilled={onChange}
                 textInputProps={{
