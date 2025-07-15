@@ -27,13 +27,13 @@ export default function Page() {
   }, []);
 
   return (
-    // <Redirect
-    //   href={
-    //     registration.step
-    //       ? redirectTo[registration.step]
-    //       : "/registration/intro"
-    //   }
-    // />
-    <Redirect href={"/login"} />
+    <Redirect
+      href={
+        registration.step
+          ? redirectTo[registration.step]
+          : "/registration/intro"
+      }
+    />
+    // <Redirect href={"/login"} />
   );
 }
