@@ -1,7 +1,7 @@
 import axios from "./axiosConfig";
 
-export const postLogin = async ({username, password}: TRequestLogin) =>
-  (await axios.post("/app-auth/login", {username, password}))
+export const postLogin = async ({email, password}: TRequestLogin) =>
+  (await axios.post("/app-auth/login", {email, password}))
     .data as TResponseLogin;
 
 export const postRegister = async ({
@@ -110,7 +110,7 @@ export const patchLocation = async (data: TRequestLocation) =>
   };
 
 type TRequestLogin = {
-  username: string;
+  email: string;
   password: string;
 };
 type TResponseLogin = {

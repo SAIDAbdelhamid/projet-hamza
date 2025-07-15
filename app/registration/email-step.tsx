@@ -48,7 +48,10 @@ export default function EmailStep() {
                 step: "INTRO",
               })
             );
-            router.replace("/registration/intro");
+            router.replace({
+              pathname: "/registration/intro",
+              params: {animation: "slide_from_left"},
+            });
           }}
           marginRight={20}
           size={24}
@@ -85,7 +88,26 @@ export default function EmailStep() {
         email_hidden: data.email_hidden,
       })
     );
-    router.replace("/registration/create-password");
+    router.replace({
+      pathname: "/registration/create-password",
+      params: {animation: "slide_from_right"},
+    });
+  };
+
+  const onBlurState = ({
+    email,
+    email_hidden,
+  }: {
+    email?: string;
+    email_hidden?: boolean;
+  }) => {
+    dispatch(
+      setRegistration({
+        ...registration,
+        email: email ? email : registration.email,
+        email_hidden: email_hidden ? email_hidden : registration.email_hidden,
+      })
+    );
   };
 
   return (
@@ -114,7 +136,7 @@ export default function EmailStep() {
               placeholder={t.registration.emailStep.emailPlaceholder}
               value={value ? value.toString() : undefined}
               onChangeText={onChange}
-              onBlur={onBlur}
+              onBlur={() => onBlurState({email: value})}
               error={error}
               returnKeyType={"send"}
               onSubmitEditing={handleSubmit(onSubmit)}
@@ -139,7 +161,10 @@ export default function EmailStep() {
                 id="email_hidden"
                 size="$3"
                 checked={!value}
-                onCheckedChange={() => onChange(!value)}
+                onCheckedChange={() => {
+                  onChange(!value);
+                  onBlurState({email_hidden: !value});
+                }}
               >
                 <Switch.Thumb
                   animation="quick"

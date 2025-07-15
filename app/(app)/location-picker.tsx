@@ -33,6 +33,7 @@ export default function LocationPicker() {
   const [countries, setCountries] = useState<
     {value: string; label: string; cities: string[]}[]
   >([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -85,6 +86,26 @@ export default function LocationPicker() {
       router.dismissAll();
     }
   }
+
+  async function onSubmit() {
+    setIsLoading(true);
+    try {
+      await patchLocation({
+        country: {name: selectedCountry, code: selectedCountry},
+        city: {name: selectedCity, code: selectedCity, type: selectedCity},
+      });
+      router.navigate("/social-network");
+    } catch (e: any) {
+      const error = e.response;
+      Alert.alert(
+        "Error " + error.status,
+        Object.values(e.response.data).flat().join("\n")
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <View
       flex={1}
@@ -166,7 +187,13 @@ export default function LocationPicker() {
             ></LinearGradient>
           </MaskedView>
         </TouchableHighlight>
-        <PrimaryButton onPress={() => router.navigate("/social-network")}>
+        <PrimaryButton
+          loading={isLoading}
+          disabled={
+            isLoading || !(Boolean(selectedCity) && Boolean(selectedCountry))
+          }
+          onPress={onSubmit}
+        >
           <ThemedText type="labelBold">
             {t.registration.common.continue}
           </ThemedText>

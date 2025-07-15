@@ -61,7 +61,6 @@ export default function AccountCategories() {
   const filteredResults = categories.filter((item) =>
     item.name.toLowerCase().includes(search.toLowerCase())
   );
-
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: t.registration.accountCategories.title,
@@ -77,7 +76,10 @@ export default function AccountCategories() {
                 step: "ACCOUNT_TYPE",
               })
             );
-            router.replace("/registration/account-type");
+            router.replace({
+              pathname: "/registration/account-type",
+              params: {animation: "slide_from_left"},
+            });
           }}
           marginRight={20}
           size={24}
@@ -105,7 +107,10 @@ export default function AccountCategories() {
           categories: selectedCategories,
         })
       );
-      router.replace("/(app)/home");
+      router.replace({
+        pathname: "/(app)/home",
+        params: {animation: "slide_from_right"},
+      });
     } catch (e: any) {
       const error = e.response.data;
       Alert.alert(

@@ -54,7 +54,10 @@ export default function CreatePassword() {
                 step: "EMAIL_STEP",
               })
             );
-            router.replace("/registration/email-step");
+            router.replace({
+              pathname: "/registration/email-step",
+              params: {animation: "slide_from_left"},
+            });
           }}
           marginRight={20}
           size={24}
@@ -154,7 +157,10 @@ export default function CreatePassword() {
             password_confirm: data.password_confirm,
           })
         );
-        router.replace("/registration/email-otp");
+        router.replace({
+          pathname: "/registration/email-otp",
+          params: {animation: "slide_from_right"},
+        });
       }
     } catch (e: any) {
       const error = e.response;
@@ -165,6 +171,24 @@ export default function CreatePassword() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onBlurState = ({
+    password,
+    password_confirm,
+  }: {
+    password?: string;
+    password_confirm?: string;
+  }) => {
+    dispatch(
+      setRegistration({
+        ...registration,
+        password: password ? password : registration.password,
+        password_confirm: password_confirm
+          ? password_confirm
+          : registration.password_confirm,
+      })
+    );
   };
 
   return (
@@ -197,7 +221,7 @@ export default function CreatePassword() {
               placeholder={t.registration.createPassword.passwordPlaceHolder}
               value={value ? value.toString() : undefined}
               onChangeText={onChange}
-              onBlur={onBlur}
+              onBlur={() => onBlurState({password: value})}
               error={
                 error?.message ===
                 t.registration.createPassword.passwordRequired
@@ -237,7 +261,7 @@ export default function CreatePassword() {
               placeholder={t.registration.createPassword.passwordConfirmation}
               value={value ? value.toString() : undefined}
               onChangeText={onChange}
-              onBlur={onBlur}
+              onBlur={() => onBlurState({password_confirm: value})}
               error={
                 error?.message ===
                 t.registration.createPassword.confirmationPasswordRequired

@@ -33,7 +33,6 @@ export default function AccountType() {
   const t = false ? fr : en;
   const registration = useSelector((state: RootState) => state.registration);
   const dispatch = useDispatch();
-  const [isSeller, setIsSeller] = useState(registration.is_seller);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -50,7 +49,10 @@ export default function AccountType() {
                 step: "GENERAL_INFORMATION",
               })
             );
-            router.replace("/registration/general-information");
+            router.replace({
+              pathname: "/registration/general-information",
+              params: {animation: "slide_from_left"},
+            });
           }}
           marginRight={20}
           size={24}
@@ -60,21 +62,24 @@ export default function AccountType() {
   }, []);
 
   const onSubmit = async () => {
-    if (isSeller) {
+    if (registration.is_seller) {
       setLoading(true);
       try {
         const response = await patchUserType({
-          is_seller: isSeller,
+          is_seller: registration.is_seller,
         });
         if (response.success) {
           dispatch(
             setRegistration({
               ...registration,
               step: "ACCOUNT_CATEGORIES",
-              is_seller: isSeller,
+              is_seller: registration.is_seller,
             })
           );
-          router.replace("/registration/account-categories");
+          router.replace({
+            pathname: "/registration/account-categories",
+            params: {animation: "slide_from_right"},
+          });
         }
       } catch (e: any) {
         const error = e.response.data;
@@ -90,12 +95,23 @@ export default function AccountType() {
         setRegistration({
           ...registration,
           step: "DONE",
-          is_seller: isSeller,
+          is_seller: registration.is_seller,
         })
       );
-
-      router.replace("/(app)/home");
+      router.replace({
+        pathname: "/(app)/home",
+        params: {animation: "slide_from_right"},
+      });
     }
+  };
+
+  const onBlurState = ({is_seller}: {is_seller: boolean}) => {
+    dispatch(
+      setRegistration({
+        ...registration,
+        is_seller: Boolean(is_seller),
+      })
+    );
   };
 
   return (
@@ -103,13 +119,13 @@ export default function AccountType() {
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <YStack flex={1} justifyContent="center">
           <ItemType
-            onPress={() => setIsSeller(false)}
-            selected={!isSeller}
+            onPress={() => onBlurState({is_seller: false})}
+            selected={!registration.is_seller}
             type="standard"
           />
           <ItemType
-            onPress={() => setIsSeller(true)}
-            selected={isSeller}
+            onPress={() => onBlurState({is_seller: true})}
+            selected={registration.is_seller}
             type="business"
           />
         </YStack>

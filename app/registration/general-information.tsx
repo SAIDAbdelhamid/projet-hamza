@@ -53,7 +53,10 @@ export default function GeneralInformation() {
                 step: "EMAIL_OTP",
               })
             );
-            router.replace("/registration/email-otp");
+            router.replace({
+              pathname: "/registration/email-otp",
+              params: {animation: "slide_from_left"},
+            });
           }}
           marginRight={20}
           size={24}
@@ -106,7 +109,10 @@ export default function GeneralInformation() {
             phone_hidden: data.phone_hidden,
           })
         );
-        router.replace("/registration/account-type");
+        router.replace({
+          pathname: "/registration/account-type",
+          params: {animation: "slide_from_right"},
+        });
       }
     } catch (e: any) {
       const error = e.response;
@@ -117,6 +123,31 @@ export default function GeneralInformation() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onBlurState = ({
+    username,
+    firstname,
+    lastname,
+    phone_number,
+    phone_hidden,
+  }: {
+    username?: string;
+    firstname?: string;
+    lastname?: string;
+    phone_number?: string;
+    phone_hidden?: boolean;
+  }) => {
+    dispatch(
+      setRegistration({
+        ...registration,
+        username: username ? username : registration.username,
+        firstname: firstname ? firstname : registration.firstname,
+        lastname: lastname ? lastname : registration.lastname,
+        phone_number: phone_number ? phone_number : registration.phone_number,
+        phone_hidden: phone_hidden ? phone_hidden : registration.phone_hidden,
+      })
+    );
   };
 
   return (
@@ -142,7 +173,7 @@ export default function GeneralInformation() {
                 placeholder={t.registration.generalInformation.username}
                 value={value}
                 onChangeText={onChange}
-                onBlur={onBlur}
+                onBlur={() => onBlurState({username: value})}
                 returnKeyType="next"
                 borderColor={error ? Colors[theme].error : undefined}
                 error={error}
@@ -167,7 +198,7 @@ export default function GeneralInformation() {
               value={value}
               autoComplete="given-name"
               onChangeText={onChange}
-              onBlur={onBlur}
+              onBlur={() => onBlurState({firstname: value})}
               returnKeyType="next"
               onSubmitEditing={() => inputRefs.current.lastname?.focus()}
             />
@@ -189,7 +220,7 @@ export default function GeneralInformation() {
               value={value}
               autoComplete="family-name"
               onChangeText={onChange}
-              onBlur={onBlur}
+              onBlur={() => onBlurState({lastname: value})}
               returnKeyType="next"
               onSubmitEditing={() => inputRefs.current.phone_number?.focus()}
             />
@@ -213,7 +244,7 @@ export default function GeneralInformation() {
               error={error}
               autoComplete="tel"
               onChangeText={onChange}
-              onBlur={onBlur}
+              onBlur={() => onBlurState({phone_number: value})}
               keyboardType="phone-pad"
               returnKeyType="done"
               onSubmitEditing={handleSubmit(onSubmit)}
@@ -248,7 +279,10 @@ export default function GeneralInformation() {
                 id="phone_hidden"
                 size="$3"
                 checked={!value}
-                onCheckedChange={() => onChange(!value)}
+                onCheckedChange={() => {
+                  onChange(!value);
+                  onBlurState({phone_hidden: !value});
+                }}
               >
                 <Switch.Thumb
                   animation="quick"

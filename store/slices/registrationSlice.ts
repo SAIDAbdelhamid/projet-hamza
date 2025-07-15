@@ -56,7 +56,7 @@ const registrationSlice = createSlice({
       state.username = action.payload.username;
       state.phone_number = action.payload.phone_number;
       state.phone_hidden = action.payload.phone_hidden;
-      state.is_seller = action.payload.phone_hidden;
+      state.is_seller = action.payload.is_seller;
       state.categories = action.payload.categories;
     },
     clearRegistration(state) {
