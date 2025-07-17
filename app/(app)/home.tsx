@@ -42,8 +42,8 @@ export default function Home() {
   const onPressLogout = () => {
     dispatch(clearRegistration());
     dispatch(clearUser());
-    // SecureStore.deleteItemAsync("access_token");
-    // router.navigate("/");
+    SecureStore.deleteItemAsync("access_token");
+    router.navigate("/");
   };
 
   return (

@@ -67,7 +67,6 @@ export default function Categories() {
       headerTitle: t.registration.accountCategories.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
-      // animation: "slide_from_left",
       headerLeft: () => (
         <ChevronLeft
           onPress={() => {

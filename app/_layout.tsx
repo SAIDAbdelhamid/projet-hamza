@@ -9,12 +9,7 @@ import {
 } from "@expo-google-fonts/inter";
 import {DarkTheme, DefaultTheme, ThemeProvider} from "@react-navigation/native";
 import {Slot} from "expo-router";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
-} from "react-native";
+import {ActivityIndicator, StatusBar} from "react-native";
 import "react-native-reanimated";
 import {Provider} from "react-redux";
 import {PersistGate} from "redux-persist/integration/react";
@@ -42,13 +37,8 @@ export default function RootLayout() {
       <Provider store={store}>
         <PersistGate loading={<Loading />} persistor={persistor}>
           <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-              style={{flex: 1}}
-            >
-              <Slot />
-              <StatusBar barStyle="light-content" />
-            </KeyboardAvoidingView>
+            <Slot />
+            <StatusBar barStyle="light-content" />
           </ThemeProvider>
         </PersistGate>
       </Provider>

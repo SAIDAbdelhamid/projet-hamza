@@ -1,5 +1,6 @@
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
+import SmartKeyboardAvoidingView from "@/components/SmartKeyboardAvoidingView";
 import {ThemedText} from "@/components/ThemedText";
 import {ThemedView} from "@/components/ThemedView";
 import {Colors} from "@/constants/Colors";
@@ -15,7 +16,7 @@ import {useLayoutEffect, useState} from "react";
 import {Controller, useForm} from "react-hook-form";
 import {ScrollView, StyleSheet} from "react-native";
 import {useDispatch, useSelector} from "react-redux";
-import {Switch, XStack, YStack} from "tamagui";
+import {Switch, XStack} from "tamagui";
 
 type FormData = {
   email: string;
@@ -112,71 +113,10 @@ export default function EmailStep() {
 
   return (
     <ThemedView style={{paddingTop: headerHeight, ...styles.container}}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        <Controller
-          name={"email"}
-          control={control}
-          rules={rules.email}
-          render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
-            <Input
-              label={t.registration.emailStep.email}
-              leftIcon={
-                <Mail
-                  size={22}
-                  zIndex={1}
-                  position="absolute"
-                  top={11}
-                  left={12}
-                />
-              }
-              size="$4"
-              keyboardType="email-address"
-              autoComplete="email"
-              autoFocus
-              placeholder={t.registration.emailStep.emailPlaceholder}
-              value={value ? value.toString() : undefined}
-              onChangeText={onChange}
-              onBlur={() => onBlurState({email: value})}
-              error={error}
-              returnKeyType={"send"}
-              onSubmitEditing={handleSubmit(onSubmit)}
-            />
-          )}
-        />
-
-        <XStack
-          alignItems="center"
-          justifyContent="space-between"
-          marginTop={12}
-          marginBottom={12}
-        >
-          <ThemedText style={styles.label} type="caption">
-            {t.registration.emailStep.showEmail}
-          </ThemedText>
-          <Controller
-            name="email_hidden"
-            control={control}
-            render={({field: {value, onChange}}) => (
-              <Switch
-                id="email_hidden"
-                size="$3"
-                checked={!value}
-                onCheckedChange={() => {
-                  onChange(!value);
-                  onBlurState({email_hidden: !value});
-                }}
-              >
-                <Switch.Thumb
-                  animation="quick"
-                  backgroundColor={Colors[theme].text}
-                />
-              </Switch>
-            )}
-          />
-        </XStack>
-
-        <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
+      <SmartKeyboardAvoidingView
+        footer={
           <PrimaryButton
+            style={{margin: 20, marginBottom: 40}}
             loading={loading}
             disabled={loading || !emailValue}
             onPress={handleSubmit(onSubmit)}
@@ -185,8 +125,75 @@ export default function EmailStep() {
               {t.registration.emailStep.confirmMail}
             </ThemedText>
           </PrimaryButton>
-        </YStack>
-      </ScrollView>
+        }
+      >
+        <ScrollView contentContainerStyle={styles.contentContainer}>
+          <Controller
+            name={"email"}
+            control={control}
+            rules={rules.email}
+            render={({
+              field: {onChange, onBlur, value},
+              fieldState: {error},
+            }) => (
+              <Input
+                label={t.registration.emailStep.email}
+                leftIcon={
+                  <Mail
+                    size={22}
+                    zIndex={1}
+                    position="absolute"
+                    top={11}
+                    left={12}
+                  />
+                }
+                size="$4"
+                keyboardType="email-address"
+                autoComplete="email"
+                autoFocus
+                placeholder={t.registration.emailStep.emailPlaceholder}
+                value={value ? value.toString() : undefined}
+                onChangeText={onChange}
+                onBlur={() => onBlurState({email: value})}
+                error={error}
+                returnKeyType={"send"}
+                onSubmitEditing={handleSubmit(onSubmit)}
+              />
+            )}
+          />
+
+          <XStack
+            alignItems="center"
+            justifyContent="space-between"
+            marginTop={12}
+            marginBottom={12}
+          >
+            <ThemedText style={styles.label} type="caption">
+              {t.registration.emailStep.showEmail}
+            </ThemedText>
+            <Controller
+              name="email_hidden"
+              control={control}
+              render={({field: {value, onChange}}) => (
+                <Switch
+                  id="email_hidden"
+                  size="$3"
+                  checked={!value}
+                  onCheckedChange={() => {
+                    onChange(!value);
+                    onBlurState({email_hidden: !value});
+                  }}
+                >
+                  <Switch.Thumb
+                    animation="quick"
+                    backgroundColor={Colors[theme].text}
+                  />
+                </Switch>
+              )}
+            />
+          </XStack>
+        </ScrollView>
+      </SmartKeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -194,7 +201,6 @@ export default function EmailStep() {
 const styles = StyleSheet.create({
   container: {flex: 1},
   contentContainer: {
-    flexGrow: 1,
     padding: 20,
     justifyContent: "space-between",
     paddingTop: 40,

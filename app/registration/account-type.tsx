@@ -1,4 +1,4 @@
-import {patchUserType} from "@/api/apis";
+import {patchUser} from "@/api/apis";
 import PrimaryButton from "@/components/PrimaryButton";
 import {ThemedText} from "@/components/ThemedText";
 import {ThemedView} from "@/components/ThemedView";
@@ -39,7 +39,6 @@ export default function AccountType() {
       headerTitle: t.registration.accountType.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
-      // animation: "slide_from_left",
       headerLeft: () => (
         <ChevronLeft
           onPress={() => {
@@ -65,22 +64,17 @@ export default function AccountType() {
     if (registration.is_seller) {
       setLoading(true);
       try {
-        const response = await patchUserType({
-          is_seller: registration.is_seller,
+        dispatch(
+          setRegistration({
+            ...registration,
+            step: "ACCOUNT_CATEGORIES",
+            is_seller: registration.is_seller,
+          })
+        );
+        router.replace({
+          pathname: "/registration/account-categories",
+          params: {animation: "slide_from_right"},
         });
-        if (response.success) {
-          dispatch(
-            setRegistration({
-              ...registration,
-              step: "ACCOUNT_CATEGORIES",
-              is_seller: registration.is_seller,
-            })
-          );
-          router.replace({
-            pathname: "/registration/account-categories",
-            params: {animation: "slide_from_right"},
-          });
-        }
       } catch (e: any) {
         const error = e.response.data;
         Alert.alert(
@@ -91,17 +85,26 @@ export default function AccountType() {
         setLoading(false);
       }
     } else {
-      dispatch(
-        setRegistration({
-          ...registration,
-          step: "DONE",
-          is_seller: registration.is_seller,
-        })
-      );
-      router.replace({
-        pathname: "/(app)/home",
-        params: {animation: "slide_from_right"},
+      const response = await patchUser({
+        username: registration.username,
+        firstname: registration.firstname,
+        lastname: registration.lastname,
+        phone_number: registration.phone_number,
+        phone_hidden: registration.phone_hidden,
       });
+      if (response) {
+        dispatch(
+          setRegistration({
+            ...registration,
+            step: "DONE",
+            is_seller: registration.is_seller,
+          })
+        );
+        router.replace({
+          pathname: "/(app)/home",
+          params: {animation: "slide_from_right"},
+        });
+      }
     }
   };
 

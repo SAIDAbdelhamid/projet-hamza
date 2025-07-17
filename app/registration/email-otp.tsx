@@ -1,5 +1,6 @@
 import {postSendOtp, postVerifyOtp} from "@/api/apis";
 import PrimaryButton from "@/components/PrimaryButton";
+import SmartKeyboardAvoidingView from "@/components/SmartKeyboardAvoidingView";
 import {ThemedText} from "@/components/ThemedText";
 import {ThemedView} from "@/components/ThemedView";
 import {Colors} from "@/constants/Colors";
@@ -16,7 +17,7 @@ import {Controller, useForm} from "react-hook-form";
 import {Alert, Platform, ScrollView, StyleSheet} from "react-native";
 import {OtpInput} from "react-native-otp-entry";
 import {useDispatch, useSelector} from "react-redux";
-import {XStack, YStack} from "tamagui";
+import {XStack} from "tamagui";
 
 type FormData = {
   otp: string;
@@ -39,7 +40,6 @@ export default function EmailOtp() {
       headerTitle: t.registration.emailOtp.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
-      // animation: "slide_from_left",
       headerLeft: () => (
         <ChevronLeft
           onPress={() => {
@@ -128,96 +128,10 @@ export default function EmailOtp() {
 
   return (
     <ThemedView style={{paddingTop: headerHeight, ...styles.container}}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        <Controller
-          name={"otp"}
-          control={control}
-          rules={rules.otp}
-          render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
-            <>
-              <ThemedText
-                style={{
-                  color: error ? Colors[theme].error : Colors[theme].text,
-                }}
-                type="labelRegular"
-              >
-                {t.registration.emailOtp.sendTo} «
-                {registration.email[0].toLowerCase()}•••
-                {extractDomain(registration.email)}»
-              </ThemedText>
-              <OtpInput
-                numberOfDigits={6}
-                focusColor={Colors[theme].text}
-                autoFocus={true}
-                hideStick={true}
-                blurOnFilled={true}
-                disabled={false}
-                type="numeric"
-                secureTextEntry={false}
-                focusStickBlinkingDuration={500}
-                onBlur={() => onBlurState({otp: value})}
-                onTextChange={onChange}
-                onFilled={onChange}
-                textInputProps={{
-                  accessibilityLabel: "One-Time Password",
-                  onSubmitEditing: handleSubmit(onSubmit),
-                }}
-                textProps={{
-                  accessibilityRole: "text",
-                  accessibilityLabel: "OTP digit",
-                  allowFontScaling: false,
-                }}
-                theme={{
-                  containerStyle: styles.containerStyle,
-                  pinCodeContainerStyle: {
-                    ...styles.pinCodeContainerStyle,
-                    borderColor: error
-                      ? Colors[theme].error
-                      : Colors[theme].text,
-                  },
-                  pinCodeTextStyle: {
-                    ...styles.pinCodeTextStyle,
-                    color: Colors[theme].text,
-                  },
-                  focusedPinCodeContainerStyle: {
-                    ...styles.focusedPinCodeContainerStyle,
-                    borderColor: error
-                      ? Colors[theme].error
-                      : Colors[theme].text,
-                  },
-                }}
-              />
-              {error && (
-                <ThemedText
-                  style={{color: Colors[theme].error, paddingTop: 4}}
-                  type="caption"
-                >
-                  {error.message}
-                </ThemedText>
-              )}
-            </>
-          )}
-        />
-        <XStack>
-          {secondsLeft === 0 ? (
-            <ThemedText
-              onPress={async () => {
-                await postSendOtp({email: registration.email});
-                setSecondsLeft(60);
-              }}
-              style={{...styles.resendCodeText, color: Colors[theme].label}}
-              type="label"
-            >
-              {t.registration.emailOtp.resendCode}
-            </ThemedText>
-          ) : (
-            <ThemedText type="labelSemiBold">
-              {t.registration.emailOtp.attemptIn} {secondsLeft}s
-            </ThemedText>
-          )}
-        </XStack>
-        <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
+      <SmartKeyboardAvoidingView
+        footer={
           <PrimaryButton
+            style={{margin: 20, marginBottom: 40}}
             loading={loading}
             disabled={loading}
             onPress={handleSubmit(onSubmit)}
@@ -226,8 +140,102 @@ export default function EmailOtp() {
               {t.registration.common.continue}
             </ThemedText>
           </PrimaryButton>
-        </YStack>
-      </ScrollView>
+        }
+      >
+        <ScrollView contentContainerStyle={styles.contentContainer}>
+          <Controller
+            name={"otp"}
+            control={control}
+            rules={rules.otp}
+            render={({
+              field: {onChange, onBlur, value},
+              fieldState: {error},
+            }) => (
+              <>
+                <ThemedText
+                  style={{
+                    color: error ? Colors[theme].error : Colors[theme].text,
+                  }}
+                  type="labelRegular"
+                >
+                  {t.registration.emailOtp.sendTo} «
+                  {registration.email[0].toLowerCase()}•••
+                  {extractDomain(registration.email)}»
+                </ThemedText>
+                <OtpInput
+                  numberOfDigits={6}
+                  focusColor={Colors[theme].text}
+                  autoFocus={true}
+                  hideStick={true}
+                  blurOnFilled={true}
+                  disabled={false}
+                  // type="numeric"
+                  secureTextEntry={false}
+                  focusStickBlinkingDuration={500}
+                  onBlur={() => onBlurState({otp: value})}
+                  onTextChange={onChange}
+                  onFilled={onChange}
+                  textInputProps={{
+                    keyboardType: "phone-pad",
+                    accessibilityLabel: "One-Time Password",
+                    onSubmitEditing: handleSubmit(onSubmit),
+                  }}
+                  textProps={{
+                    accessibilityRole: "text",
+                    accessibilityLabel: "OTP digit",
+                    allowFontScaling: false,
+                  }}
+                  theme={{
+                    containerStyle: styles.containerStyle,
+                    pinCodeContainerStyle: {
+                      ...styles.pinCodeContainerStyle,
+                      borderColor: error
+                        ? Colors[theme].error
+                        : Colors[theme].text,
+                    },
+                    pinCodeTextStyle: {
+                      ...styles.pinCodeTextStyle,
+                      color: Colors[theme].text,
+                    },
+                    focusedPinCodeContainerStyle: {
+                      ...styles.focusedPinCodeContainerStyle,
+                      borderColor: error
+                        ? Colors[theme].error
+                        : Colors[theme].text,
+                    },
+                  }}
+                />
+                {error && (
+                  <ThemedText
+                    style={{color: Colors[theme].error, paddingTop: 4}}
+                    type="caption"
+                  >
+                    {error.message}
+                  </ThemedText>
+                )}
+              </>
+            )}
+          />
+          <XStack>
+            {secondsLeft === 0 ? (
+              <ThemedText
+                onPress={async () => {
+                  await postSendOtp({email: registration.email});
+                  setSecondsLeft(60);
+                }}
+                style={{...styles.resendCodeText, color: Colors[theme].label}}
+                type="label"
+              >
+                {t.registration.emailOtp.resendCode}
+              </ThemedText>
+            ) : (
+              <ThemedText type="labelSemiBold">
+                {t.registration.emailOtp.attemptIn} {secondsLeft}s
+              </ThemedText>
+            )}
+          </XStack>
+        </ScrollView>
+      </SmartKeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -238,7 +246,6 @@ function extractDomain(email: string) {
 const styles = StyleSheet.create({
   container: {flex: 1},
   contentContainer: {
-    flexGrow: 1,
     padding: 20,
     justifyContent: "space-between",
     paddingTop: 40,

@@ -45,6 +45,17 @@ export const patchUser = async ({
 export const getUser = async () =>
   (await axios.get("/api/me")).data as TUserInfo & TErrorRegister;
 
+export const postRefreshToken = async ({
+  refreshToken,
+}: {
+  refreshToken?: string;
+}) =>
+  (
+    await axios.post("/app-auth/refresh", {
+      refreshToken,
+    })
+  ).data as TResponseLogin;
+
 export const postSendOtp = async ({email}: {email: string}) =>
   (
     await axios.post("/app-auth/otp/verification/email", {

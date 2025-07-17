@@ -1,9 +1,12 @@
 import {
   getCategories,
-  patchInterestedCategories,
   patchSellerCategories,
+  patchUser,
+  patchUserType,
+  postRefreshToken,
   TCategorie,
 } from "@/api/apis";
+import ws from "@/api/axiosConfig";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import PrimarySelect from "@/components/PrimarySelect";
@@ -18,6 +21,7 @@ import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
 import {ChevronLeft, Search} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import {useEffect, useLayoutEffect, useState} from "react";
 import {ActivityIndicator, Alert, ScrollView, StyleSheet} from "react-native";
 import {useDispatch, useSelector} from "react-redux";
@@ -66,7 +70,6 @@ export default function AccountCategories() {
       headerTitle: t.registration.accountCategories.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
-      // animation: "slide_from_left",
       headerLeft: () => (
         <ChevronLeft
           onPress={() => {
@@ -90,27 +93,46 @@ export default function AccountCategories() {
   const onSubmit = async () => {
     setLoading(true);
     try {
-      let response;
-      if (registration.is_seller) {
-        response = await patchSellerCategories({
-          categories: selectedCategories,
-        });
-      } else {
-        response = await patchInterestedCategories({
-          categories: selectedCategories,
+      const response = await patchUser({
+        username: registration.username,
+        firstname: registration.firstname,
+        lastname: registration.lastname,
+        phone_number: registration.phone_number,
+        phone_hidden: registration.phone_hidden,
+      });
+
+      await patchUserType({
+        is_seller: registration.is_seller,
+      });
+
+      const refreshToken = SecureStore.getItem("refresh_token") || "";
+
+      const newToken = await postRefreshToken({
+        refreshToken,
+      });
+
+      ws.defaults.headers.common["Authorization"] =
+        `Bearer ${newToken.access_token}`;
+
+      await SecureStore.setItemAsync("access_token", newToken.access_token);
+
+      await patchSellerCategories({
+        categories: selectedCategories,
+      });
+
+      if (response) {
+        dispatch(
+          setRegistration({
+            ...registration,
+            step: "DONE",
+            categories: selectedCategories,
+          })
+        );
+        router.replace({
+          pathname: "/(app)/home",
+          params: {animation: "slide_from_right"},
         });
       }
-      dispatch(
-        setRegistration({
-          ...registration,
-          step: "DONE",
-          categories: selectedCategories,
-        })
-      );
-      router.replace({
-        pathname: "/(app)/home",
-        params: {animation: "slide_from_right"},
-      });
     } catch (e: any) {
       const error = e.response.data;
       Alert.alert(

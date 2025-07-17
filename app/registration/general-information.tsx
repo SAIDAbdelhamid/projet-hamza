@@ -1,6 +1,7 @@
 import {patchUser} from "@/api/apis";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
+import SmartKeyboardAvoidingView from "@/components/SmartKeyboardAvoidingView";
 import {ThemedText} from "@/components/ThemedText";
 import {ThemedView} from "@/components/ThemedView";
 import {Colors} from "@/constants/Colors";
@@ -43,7 +44,6 @@ export default function GeneralInformation() {
       headerTitle: t.registration.generalInformation.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
-      // animation: "slide_from_left",
       headerLeft: () => (
         <ChevronLeft
           onPress={() => {
@@ -152,150 +152,10 @@ export default function GeneralInformation() {
 
   return (
     <ThemedView style={{paddingTop: headerHeight, ...styles.container}}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        {/* Username */}
-        <YStack>
-          <Controller
-            name="username"
-            control={control}
-            rules={rules.username}
-            render={({
-              field: {onChange, onBlur, value},
-              fieldState: {error},
-            }) => (
-              <Input
-                ref={(ref) => {
-                  inputRefs.current.username = ref;
-                }}
-                label={t.registration.generalInformation.username + " *"}
-                size="$4"
-                autoFocus
-                placeholder={t.registration.generalInformation.username}
-                value={value}
-                onChangeText={onChange}
-                onBlur={() => onBlurState({username: value})}
-                returnKeyType="next"
-                borderColor={error ? Colors[theme].error : undefined}
-                error={error}
-                onSubmitEditing={() => inputRefs.current.firstname?.focus()}
-              />
-            )}
-          />
-        </YStack>
-
-        {/* Firstname */}
-        <Controller
-          name="firstname"
-          control={control}
-          render={({field: {onChange, onBlur, value}}) => (
-            <Input
-              ref={(ref) => {
-                inputRefs.current.firstname = ref;
-              }}
-              label={t.registration.generalInformation.firstname}
-              size="$4"
-              placeholder={t.registration.generalInformation.firstname}
-              value={value}
-              autoComplete="given-name"
-              onChangeText={onChange}
-              onBlur={() => onBlurState({firstname: value})}
-              returnKeyType="next"
-              onSubmitEditing={() => inputRefs.current.lastname?.focus()}
-            />
-          )}
-        />
-
-        {/* Lastname */}
-        <Controller
-          name="lastname"
-          control={control}
-          render={({field: {onChange, onBlur, value}}) => (
-            <Input
-              ref={(ref) => {
-                inputRefs.current.lastname = ref;
-              }}
-              label={t.registration.generalInformation.lastname}
-              size="$4"
-              placeholder={t.registration.generalInformation.lastname}
-              value={value}
-              autoComplete="family-name"
-              onChangeText={onChange}
-              onBlur={() => onBlurState({lastname: value})}
-              returnKeyType="next"
-              onSubmitEditing={() => inputRefs.current.phone_number?.focus()}
-            />
-          )}
-        />
-
-        {/* Phone */}
-        <Controller
-          name="phone_number"
-          control={control}
-          rules={rules.phone_number}
-          render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
-            <Input
-              ref={(ref) => {
-                inputRefs.current.phone_number = ref;
-              }}
-              label={t.registration.generalInformation.phoneNumber}
-              size="$4"
-              placeholder="+49 000 0000000"
-              value={value}
-              error={error}
-              autoComplete="tel"
-              onChangeText={onChange}
-              onBlur={() => onBlurState({phone_number: value})}
-              keyboardType="phone-pad"
-              returnKeyType="done"
-              onSubmitEditing={handleSubmit(onSubmit)}
-              leftIcon={
-                <Phone
-                  size={22}
-                  zIndex={1}
-                  position="absolute"
-                  top={11}
-                  left={12}
-                />
-              }
-            />
-          )}
-        />
-
-        {/* Phone Hidden */}
-        <XStack
-          alignItems="center"
-          justifyContent="space-between"
-          marginTop={12}
-          marginBottom={12}
-        >
-          <ThemedText style={styles.label} type="caption">
-            {t.registration.generalInformation.phoneHidden}
-          </ThemedText>
-          <Controller
-            name="phone_hidden"
-            control={control}
-            render={({field: {value, onChange}}) => (
-              <Switch
-                id="phone_hidden"
-                size="$3"
-                checked={!value}
-                onCheckedChange={() => {
-                  onChange(!value);
-                  onBlurState({phone_hidden: !value});
-                }}
-              >
-                <Switch.Thumb
-                  animation="quick"
-                  backgroundColor={Colors[theme].text}
-                />
-              </Switch>
-            )}
-          />
-        </XStack>
-
-        {/* Submit */}
-        <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
+      <SmartKeyboardAvoidingView
+        footer={
           <PrimaryButton
+            style={{margin: 20, marginBottom: 40}}
             loading={loading}
             disabled={loading || !usernameValue}
             onPress={handleSubmit(onSubmit)}
@@ -304,8 +164,153 @@ export default function GeneralInformation() {
               {t.registration.common.continue}
             </ThemedText>
           </PrimaryButton>
-        </YStack>
-      </ScrollView>
+        }
+      >
+        <ScrollView contentContainerStyle={styles.contentContainer}>
+          {/* Username */}
+          <YStack>
+            <Controller
+              name="username"
+              control={control}
+              rules={rules.username}
+              render={({
+                field: {onChange, onBlur, value},
+                fieldState: {error},
+              }) => (
+                <Input
+                  ref={(ref) => {
+                    inputRefs.current.username = ref;
+                  }}
+                  label={t.registration.generalInformation.username + " *"}
+                  size="$4"
+                  autoFocus
+                  placeholder={t.registration.generalInformation.username}
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={() => onBlurState({username: value})}
+                  returnKeyType="next"
+                  borderColor={error ? Colors[theme].error : undefined}
+                  error={error}
+                  onSubmitEditing={() => inputRefs.current.firstname?.focus()}
+                />
+              )}
+            />
+          </YStack>
+
+          {/* Firstname */}
+          <Controller
+            name="firstname"
+            control={control}
+            render={({field: {onChange, onBlur, value}}) => (
+              <Input
+                ref={(ref) => {
+                  inputRefs.current.firstname = ref;
+                }}
+                label={t.registration.generalInformation.firstname}
+                size="$4"
+                placeholder={t.registration.generalInformation.firstname}
+                value={value}
+                autoComplete="given-name"
+                onChangeText={onChange}
+                onBlur={() => onBlurState({firstname: value})}
+                returnKeyType="next"
+                onSubmitEditing={() => inputRefs.current.lastname?.focus()}
+              />
+            )}
+          />
+
+          {/* Lastname */}
+          <Controller
+            name="lastname"
+            control={control}
+            render={({field: {onChange, onBlur, value}}) => (
+              <Input
+                ref={(ref) => {
+                  inputRefs.current.lastname = ref;
+                }}
+                label={t.registration.generalInformation.lastname}
+                size="$4"
+                placeholder={t.registration.generalInformation.lastname}
+                value={value}
+                autoComplete="family-name"
+                onChangeText={onChange}
+                onBlur={() => onBlurState({lastname: value})}
+                returnKeyType="next"
+                onSubmitEditing={() => inputRefs.current.phone_number?.focus()}
+              />
+            )}
+          />
+
+          {/* Phone */}
+          <Controller
+            name="phone_number"
+            control={control}
+            rules={rules.phone_number}
+            render={({
+              field: {onChange, onBlur, value},
+              fieldState: {error},
+            }) => (
+              <Input
+                ref={(ref) => {
+                  inputRefs.current.phone_number = ref;
+                }}
+                label={t.registration.generalInformation.phoneNumber}
+                size="$4"
+                placeholder="+49 000 0000000"
+                value={value}
+                error={error}
+                autoComplete="tel"
+                onChangeText={onChange}
+                onBlur={() => onBlurState({phone_number: value})}
+                keyboardType="phone-pad"
+                returnKeyType="done"
+                onSubmitEditing={handleSubmit(onSubmit)}
+                leftIcon={
+                  <Phone
+                    size={22}
+                    zIndex={1}
+                    position="absolute"
+                    top={11}
+                    left={12}
+                  />
+                }
+              />
+            )}
+          />
+
+          {/* Phone Hidden */}
+          <XStack
+            alignItems="center"
+            justifyContent="space-between"
+            marginTop={12}
+            marginBottom={12}
+          >
+            <ThemedText style={styles.label} type="caption">
+              {t.registration.generalInformation.phoneHidden}
+            </ThemedText>
+            <Controller
+              name="phone_hidden"
+              control={control}
+              render={({field: {value, onChange}}) => (
+                <Switch
+                  id="phone_hidden"
+                  size="$3"
+                  checked={!value}
+                  onCheckedChange={() => {
+                    onChange(!value);
+                    onBlurState({phone_hidden: !value});
+                  }}
+                >
+                  <Switch.Thumb
+                    animation="quick"
+                    backgroundColor={Colors[theme].text}
+                  />
+                </Switch>
+              )}
+            />
+          </XStack>
+        </ScrollView>
+      </SmartKeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -313,7 +318,6 @@ export default function GeneralInformation() {
 const styles = StyleSheet.create({
   container: {flex: 1},
   contentContainer: {
-    flexGrow: 1,
     padding: 20,
     justifyContent: "space-between",
     paddingTop: 40,

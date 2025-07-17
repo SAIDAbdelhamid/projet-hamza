@@ -2,6 +2,7 @@ import {postRegister} from "@/api/apis";
 import ws from "@/api/axiosConfig";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
+import SmartKeyboardAvoidingView from "@/components/SmartKeyboardAvoidingView";
 import {ThemedText} from "@/components/ThemedText";
 import {ThemedView} from "@/components/ThemedView";
 import {Colors} from "@/constants/Colors";
@@ -44,7 +45,6 @@ export default function CreatePassword() {
       headerTitle: t.registration.createPassword.title,
       headerTintColor: Colors[theme].text,
       headerBackButtonDisplayMode: "minimal",
-      // animation: "slide_from_left",
       headerLeft: () => (
         <ChevronLeft
           onPress={() => {
@@ -148,6 +148,10 @@ export default function CreatePassword() {
           ws.defaults.headers.common["Authorization"] =
             `Bearer ${response.access_token}`;
           await SecureStore.setItemAsync("access_token", response.access_token);
+          await SecureStore.setItemAsync(
+            "refresh_token",
+            response.refresh_token
+          );
         }
         dispatch(
           setRegistration({
@@ -193,129 +197,10 @@ export default function CreatePassword() {
 
   return (
     <ThemedView style={{paddingTop: headerHeight, ...styles.container}}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        <Controller
-          name={"password"}
-          control={control}
-          rules={rules.password}
-          render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
-            <Input
-              ref={(ref) => {
-                inputRefs.current.password = ref;
-              }}
-              isPassword
-              label={t.registration.createPassword.password}
-              leftIcon={
-                <LockKeyholeOpen
-                  size={22}
-                  zIndex={1}
-                  position="absolute"
-                  top={10}
-                  left={12}
-                />
-              }
-              size="$4"
-              autoFocus
-              keyboardType={"default"}
-              autoComplete="current-password"
-              placeholder={t.registration.createPassword.passwordPlaceHolder}
-              value={value ? value.toString() : undefined}
-              onChangeText={onChange}
-              onBlur={() => onBlurState({password: value})}
-              error={
-                error?.message ===
-                t.registration.createPassword.passwordRequired
-                  ? error
-                  : undefined
-              }
-              returnKeyType={"next"}
-              onSubmitEditing={() => {
-                inputRefs.current.password_confirm?.focus();
-              }}
-            />
-          )}
-        />
-        <Controller
-          name={"password_confirm"}
-          control={control}
-          rules={rules.password_confirm}
-          render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
-            <Input
-              ref={(ref) => {
-                inputRefs.current.password_confirm = ref;
-              }}
-              isPassword
-              label={t.registration.createPassword.passwordConfirmation}
-              leftIcon={
-                <LockKeyholeOpen
-                  size={22}
-                  zIndex={1}
-                  position="absolute"
-                  top={10}
-                  left={12}
-                />
-              }
-              size="$4"
-              keyboardType={"default"}
-              autoComplete="current-password"
-              placeholder={t.registration.createPassword.passwordConfirmation}
-              value={value ? value.toString() : undefined}
-              onChangeText={onChange}
-              onBlur={() => onBlurState({password_confirm: value})}
-              error={
-                error?.message ===
-                t.registration.createPassword.confirmationPasswordRequired
-                  ? error
-                  : undefined
-              }
-              returnKeyType={"send"}
-              onSubmitEditing={handleSubmit(onSubmit)}
-            />
-          )}
-        />
-        <YStack gap="$2" paddingTop={20}>
-          {passwordRules.map((rule, index) => (
-            <YStack
-              key={index}
-              flexDirection="row"
-              alignItems="center"
-              gap="$2"
-            >
-              <XStack>
-                {rule.valid ? (
-                  <MaskedView maskElement={<Check size={16} marginLeft={2} />}>
-                    <LinearGradient
-                      height={16}
-                      width={16}
-                      margin={4}
-                      colors={[
-                        Colors[theme].gradientStart,
-                        Colors[theme].gradientEnd,
-                      ]}
-                      start={[0, 0]}
-                      end={[0.05, 2]}
-                      locations={[0, 0.65]}
-                    />
-                  </MaskedView>
-                ) : (
-                  <View
-                    backgroundColor={"#343333"}
-                    height={6}
-                    width={6}
-                    borderRadius={6}
-                    margin={9}
-                  />
-                )}
-                <ThemedText style={{color: Colors[theme].text, paddingLeft: 4}}>
-                  {rule.label}
-                </ThemedText>
-              </XStack>
-            </YStack>
-          ))}
-        </YStack>
-
-        <YStack flex={1} paddingBottom={20} justifyContent="flex-end">
+      <SmartKeyboardAvoidingView
+        footer={
           <PrimaryButton
+            style={{margin: 20, marginBottom: 40}}
             loading={loading}
             disabled={
               loading || !passwordRules.every((rule: any) => rule.valid)
@@ -326,8 +211,140 @@ export default function CreatePassword() {
               {t.registration.createPassword.createPassword}
             </ThemedText>
           </PrimaryButton>
-        </YStack>
-      </ScrollView>
+        }
+      >
+        <ScrollView contentContainerStyle={styles.contentContainer}>
+          <Controller
+            name={"password"}
+            control={control}
+            rules={rules.password}
+            render={({
+              field: {onChange, onBlur, value},
+              fieldState: {error},
+            }) => (
+              <Input
+                ref={(ref) => {
+                  inputRefs.current.password = ref;
+                }}
+                isPassword
+                label={t.registration.createPassword.password}
+                leftIcon={
+                  <LockKeyholeOpen
+                    size={22}
+                    zIndex={1}
+                    position="absolute"
+                    top={10}
+                    left={12}
+                  />
+                }
+                size="$4"
+                autoFocus
+                keyboardType={"default"}
+                autoComplete="current-password"
+                placeholder={t.registration.createPassword.passwordPlaceHolder}
+                value={value ? value.toString() : undefined}
+                onChangeText={onChange}
+                onBlur={() => onBlurState({password: value})}
+                error={
+                  error?.message ===
+                  t.registration.createPassword.passwordRequired
+                    ? error
+                    : undefined
+                }
+                returnKeyType={"next"}
+                onSubmitEditing={() => {
+                  inputRefs.current.password_confirm?.focus();
+                }}
+              />
+            )}
+          />
+          <Controller
+            name={"password_confirm"}
+            control={control}
+            rules={rules.password_confirm}
+            render={({
+              field: {onChange, onBlur, value},
+              fieldState: {error},
+            }) => (
+              <Input
+                ref={(ref) => {
+                  inputRefs.current.password_confirm = ref;
+                }}
+                isPassword
+                label={t.registration.createPassword.passwordConfirmation}
+                leftIcon={
+                  <LockKeyholeOpen
+                    size={22}
+                    zIndex={1}
+                    position="absolute"
+                    top={10}
+                    left={12}
+                  />
+                }
+                size="$4"
+                keyboardType={"default"}
+                autoComplete="current-password"
+                placeholder={t.registration.createPassword.passwordConfirmation}
+                value={value ? value.toString() : undefined}
+                onChangeText={onChange}
+                onBlur={() => onBlurState({password_confirm: value})}
+                error={
+                  error?.message ===
+                  t.registration.createPassword.confirmationPasswordRequired
+                    ? error
+                    : undefined
+                }
+                returnKeyType={"send"}
+                onSubmitEditing={handleSubmit(onSubmit)}
+              />
+            )}
+          />
+          <YStack gap="$2" paddingTop={20}>
+            {passwordRules.map((rule, index) => (
+              <YStack
+                key={index}
+                flexDirection="row"
+                alignItems="center"
+                gap="$2"
+              >
+                <XStack>
+                  {rule.valid ? (
+                    <MaskedView
+                      maskElement={<Check size={16} marginLeft={2} />}
+                    >
+                      <LinearGradient
+                        height={16}
+                        width={16}
+                        margin={4}
+                        colors={[
+                          Colors[theme].gradientStart,
+                          Colors[theme].gradientEnd,
+                        ]}
+                        start={[0, 0]}
+                        end={[0.05, 2]}
+                        locations={[0, 0.65]}
+                      />
+                    </MaskedView>
+                  ) : (
+                    <View
+                      backgroundColor={"#343333"}
+                      height={6}
+                      width={6}
+                      borderRadius={6}
+                      margin={9}
+                    />
+                  )}
+                  <ThemedText
+                    style={{color: Colors[theme].text, paddingLeft: 4}}
+                  >
+                    {rule.label}
+                  </ThemedText>
+                </XStack>
+              </YStack>
+            ))}
+          </YStack>
+        </ScrollView>
+      </SmartKeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -335,7 +352,6 @@ export default function CreatePassword() {
 const styles = StyleSheet.create({
   container: {flex: 1},
   contentContainer: {
-    flexGrow: 1,
     padding: 20,
     justifyContent: "space-between",
     paddingTop: 40,
