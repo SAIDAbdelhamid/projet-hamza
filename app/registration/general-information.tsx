@@ -13,9 +13,15 @@ import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
 import {ChevronLeft, Phone} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
-import {useLayoutEffect, useRef, useState} from "react";
+import {useEffect, useLayoutEffect, useRef, useState} from "react";
 import {Controller, useForm} from "react-hook-form";
-import {Alert, ScrollView, StyleSheet, TextInput} from "react-native";
+import {
+  Alert,
+  BackHandler,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+} from "react-native";
 import {useDispatch, useSelector} from "react-redux";
 import {Switch, XStack, YStack} from "tamagui";
 
@@ -63,6 +69,29 @@ export default function GeneralInformation() {
         />
       ),
     });
+  }, []);
+
+  useEffect(() => {
+    const backAction = () => {
+      dispatch(
+        setRegistration({
+          ...registration,
+          step: "EMAIL_OTP",
+        })
+      );
+      router.replace({
+        pathname: "/registration/email-otp",
+        params: {animation: "slide_from_left"},
+      });
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
   }, []);
 
   const {control, handleSubmit, watch} = useForm<FormData>({

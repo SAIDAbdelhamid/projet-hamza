@@ -12,9 +12,9 @@ import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
 import {ChevronLeft, Mail} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
-import {useLayoutEffect, useState} from "react";
+import {useEffect, useLayoutEffect, useState} from "react";
 import {Controller, useForm} from "react-hook-form";
-import {ScrollView, StyleSheet} from "react-native";
+import {BackHandler, ScrollView, StyleSheet} from "react-native";
 import {useDispatch, useSelector} from "react-redux";
 import {Switch, XStack} from "tamagui";
 
@@ -59,6 +59,29 @@ export default function EmailStep() {
         />
       ),
     });
+  }, []);
+
+  useEffect(() => {
+    const backAction = () => {
+      dispatch(
+        setRegistration({
+          ...registration,
+          step: "INTRO",
+        })
+      );
+      router.replace({
+        pathname: "/registration/intro",
+        params: {animation: "slide_from_left"},
+      });
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
   }, []);
 
   const {control, handleSubmit, watch} = useForm<FormData>({

@@ -23,7 +23,13 @@ import {ChevronLeft, Search} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import {useEffect, useLayoutEffect, useState} from "react";
-import {ActivityIndicator, Alert, ScrollView, StyleSheet} from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  BackHandler,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
 import {useDispatch, useSelector} from "react-redux";
 import {View, YStack} from "tamagui";
 
@@ -90,6 +96,30 @@ export default function AccountCategories() {
       ),
     });
   });
+
+  useEffect(() => {
+    const backAction = () => {
+      dispatch(
+        setRegistration({
+          ...registration,
+          step: "ACCOUNT_TYPE",
+        })
+      );
+      router.replace({
+        pathname: "/registration/account-type",
+        params: {animation: "slide_from_left"},
+      });
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
   const onSubmit = async () => {
     setLoading(true);
     try {

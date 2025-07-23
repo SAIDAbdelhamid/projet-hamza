@@ -16,9 +16,15 @@ import {useTheme} from "@react-navigation/native";
 import {Check, ChevronLeft, LockKeyholeOpen} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import {useLayoutEffect, useRef, useState} from "react";
+import {useEffect, useLayoutEffect, useRef, useState} from "react";
 import {Controller, useForm} from "react-hook-form";
-import {Alert, ScrollView, StyleSheet, TextInput} from "react-native";
+import {
+  Alert,
+  BackHandler,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+} from "react-native";
 import {useDispatch, useSelector} from "react-redux";
 import {View, XStack, YStack} from "tamagui";
 import {LinearGradient} from "tamagui/linear-gradient";
@@ -64,6 +70,29 @@ export default function CreatePassword() {
         />
       ),
     });
+  }, []);
+
+  useEffect(() => {
+    const backAction = () => {
+      dispatch(
+        setRegistration({
+          ...registration,
+          step: "EMAIL_STEP",
+        })
+      );
+      router.replace({
+        pathname: "/registration/email-step",
+        params: {animation: "slide_from_left"},
+      });
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
   }, []);
 
   const {

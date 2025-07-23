@@ -12,9 +12,10 @@ import {useHeaderHeight} from "@react-navigation/elements";
 import {useTheme} from "@react-navigation/native";
 import {ChevronLeft, User} from "@tamagui/lucide-icons";
 import {useNavigation, useRouter} from "expo-router";
-import {useLayoutEffect, useState} from "react";
+import {useEffect, useLayoutEffect, useState} from "react";
 import {
   Alert,
+  BackHandler,
   GestureResponderEvent,
   ScrollView,
   StyleSheet,
@@ -58,6 +59,29 @@ export default function AccountType() {
         />
       ),
     });
+  }, []);
+
+  useEffect(() => {
+    const backAction = () => {
+      dispatch(
+        setRegistration({
+          ...registration,
+          step: "GENERAL_INFORMATION",
+        })
+      );
+      router.replace({
+        pathname: "/registration/general-information",
+        params: {animation: "slide_from_left"},
+      });
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
   }, []);
 
   const onSubmit = async () => {
